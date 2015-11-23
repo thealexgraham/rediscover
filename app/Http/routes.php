@@ -11,6 +11,20 @@
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
+Route::get('/', 'SpotifyAuthController@index');
+
+
+Route::group(['prefix' => 'spotify'], function () {
+	Route::get('login', 'SpotifyAuthController@login');
+
+	Route::get('callback', 'SpotifyAuthController@callback');
 });
+
+Route::post('test', function (Request $request) {
+	dd($request);
+});
+
+Route::get('me', 'SpotifyAuthController@showMeInfo');
+
+Route::get('tracks', 'SpotifyAuthController@tracks');
+Route::get('tentracks', 'SpotifyAuthController@tentracks');

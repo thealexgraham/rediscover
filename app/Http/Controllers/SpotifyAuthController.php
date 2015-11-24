@@ -25,9 +25,9 @@ class SpotifyAuthController extends Controller
 
 	function index() {
 		if (!$this->session->has('access_token')) {
-			return view('index');
+			return view('login');
 		} else {
-			return redirect('me');
+			return view('index'); //redirect('/');
 		}
 	}
 
@@ -38,7 +38,7 @@ class SpotifyAuthController extends Controller
 				'response_type' => 'code',
 				'redirect_uri' => $this->redirectUri,
 				'scope' => 'playlist-read-private user-read-email user-read-private user-library-read',
-				'show_dialog' => false
+				'show_dialog' => true
 		]);
 
     	// Redirect to the spotify login page
@@ -47,8 +47,9 @@ class SpotifyAuthController extends Controller
 
     function logout() {
     	$this->session->forget('access_token');
+    	$this->session->forget('refresh_token');
     	$this->session->forget('user');
-    	return redirect('/');
+    	return redirect('/login');
     }
 
     function callback(Request $request) {
@@ -124,30 +125,74 @@ class SpotifyAuthController extends Controller
     		}
     }
 
-    function randomTracks() {
+    function randomTracks(Request $request) {
+
+    	$count = $request->input('count', 5);
+
     	$maxOffset = 50;
-    	$count = 10;
+    	$tracks = [];
 
     	// Get a track to find the number of tracks we currently have
     	$data = $this->doSpotifyGet('https://api.spotify.com/v1/me/tracks' . '?limit=1');
-    	
     	$totalTracks = $data['total'];
 
+    	// Get 10 random track numbers
     	$trackNums = [];
 
-    	// Get 10 random track numbers
     	for ($i=0; $i < $count; $i++) {
-    		while(in_array($num = mt_rand(1, $totalTracks), $trackNums)){}
+    		while(in_array($num = mt_rand(0, $totalTracks), $trackNums)){}
     		$trackNums[] = $num;
     	}
 
     	// Sort track nums ascending
     	sort($trackNums);
+
+    	// Split the requests into groups to make as few API calls as possible
+    	$trackRequests = [];
+    	$this->rangeGroup($trackNums, $maxOffset, $trackRequests);
+
+    	// Each track request contains a group of tracks that should fit into one request
+    	foreach ($trackRequests as $trackRequest) {
+
+    		// Offest is just the first track #
+    		$offset = $trackRequest[0]; 
+    		// Limit is the range of the values in the request
+    		$limit = $trackRequest[count($trackRequest) - 1] - $trackRequest[0] + 1;
+
+    		// Do the request
+    		$data = $this->doSpotifyGet("https://api.spotify.com/v1/me/tracks?offset=$offset&limit=$limit"); //, ['offset' => $offset, 'limit' => $limit]);
+
+    		foreach ($trackRequest as $trackIdx) {
+    			$trackInfo = $data['items'][$trackIdx - $offset]['track'];
+    			$track = [
+    				'name' => $trackInfo['name'],
+    				'url' => $trackInfo['external_urls']['spotify'],
+    				'album_name' => $trackInfo['album']['name'],
+    				'artist_name' => $trackInfo['artists'][0]['name'],
+    			];
+    			$tracks[] = $track;
+    		}
+    	}
+
+    	return $tracks;
     }
 
+    function gatherTrackInfo($item) {
+		$track = $item['track'];
+		$name = $track['name'];
+		$trackUrl = $track['external_urls']['spotify'];
+		$album = $track['album']['name'];
+		$artist = $track['artists'][0]['name'];
+
+		$tracks[] = $name;
+    }
+
+
     function rangeGroup($array, $max, &$splits) {
-    	echo "Running range Group";
-    	var_dump($array);
+    	
+    	if (empty($array)) {
+    		return;
+    	}
 
     	if (count($array) == 1) {
     		// Last array, just add it to the splits
@@ -155,10 +200,15 @@ class SpotifyAuthController extends Controller
     		return;
     	}
 
-    	$bestIndex = 0;
-    	$bestCount = 0;
-    	$currentTopIdx = 0;
-    	
+    	if ($array[1] > $array[0] + $max) {
+			// If this number isn't in a group with the number above it, add it to the splits and move on
+			$splits[] = [$array[0]];
+			$this->rangeGroup(array_slice($array, 1), $max, $splits);
+			return;
+		}
+
+    	$bestCount = 0;    	
+
     	for($i=0; $i<count($array); $i++) {
 
     		$count = 0; // How many numbers we can include
@@ -169,49 +219,37 @@ class SpotifyAuthController extends Controller
     				// If it isn't in range, break out
     				 break;
     			}
-
     			// If it is in the range, incease the count, and save this top idx
-    			$currentTopIdx = $j;
     			$count++;
     		}
 
-    		if($bestCount != 0 && $count < $bestCount) {
+    		if($count < $bestCount) {
     			// We've had a better grouping before, so use it
     			$bestIdx = $i - 1;
-    			$adding = array_slice($array, $i - 1, $currentTopIdx + 1);
-    			$below = array_slice($array, 0, $i - 1);
-    			$above = array_slice($array, $currentTopIdx + 1, count($array) - 1);
+    			$adding = array_slice($array, $bestIdx, $bestCount);
+    			$below = array_slice($array, 0, $bestIdx);
+    			$above = array_slice($array, $bestIdx + $bestCount);
     			
+    			// Add to the current splits
     			$splits[] = $adding;
 
-    			echo "Bottom";
-    			var_dump($below);
-    			echo "top";
-				var_dump($above);
-				echo "adding";
-				var_dump($adding);
-    			// send back 
+    			// Add the ranges for the numbers above and below
 				$this->rangeGroup($above, $max, $splits);
 				$this->rangeGroup($below, $max, $splits);
+
     			break;
     		}
 
     		// This is the best count we've had so far, so store it
     		$bestCount = $count;
     		$bestIdx = $i;
-    		
-    		if ($count = 0) {
-    			// This number does not contain a group, just add it to the splits
-    			$splits[] = [$current];
-    			$this->rangeGroup(array_slice($array, 1, count($array) - 1), $max, $splits);
-    			echo " I am even doing this";
-    			return;
-    		}
     	}
     }
 
     function tentracks() {
-    	$testArray = [1, 3, 8, 9, 10, 11, 12, 30, 34, 40, 50];
+    	$testArray = [1, 3, 8, 9, 10, 11, 12, 30, 34, 40, 50, 51, 52, 100, 210, 222, 240, 520];
+    	// $testArray = [1, 3, 45, 50, 100];
+
     	$splitArray = [];
     	$this->rangeGroup($testArray, 5, $splitArray);
     	var_dump($splitArray);

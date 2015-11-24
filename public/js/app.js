@@ -1,0 +1,1 @@
+var trackApp = angular.module('trackApp', ['mainCtrl', 'randomTrackService']);

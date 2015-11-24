@@ -11,13 +11,15 @@
 |
 */
 
-Route::get('/', 'SpotifyAuthController@index');
+Route::get('/login', 'SpotifyAuthController@index');
+Route::get('/logout', 'SpotifyAuthController@logout');
 
 
 Route::group(['prefix' => 'spotify'], function () {
 	Route::get('login', 'SpotifyAuthController@login');
-
 	Route::get('callback', 'SpotifyAuthController@callback');
+	Route::get('tracks/random', 'SpotifyAuthController@randomTracks');
+	Route::get('tracks', 'SpotifyAuthController@tracks');
 });
 
 Route::post('test', function (Request $request) {
@@ -26,5 +28,11 @@ Route::post('test', function (Request $request) {
 
 Route::get('me', 'SpotifyAuthController@showMeInfo');
 
-Route::get('tracks', 'SpotifyAuthController@tracks');
+
 Route::get('tentracks', 'SpotifyAuthController@tentracks');
+
+Route::any('{url?}', 'SpotifyAuthController@index')->where(['url' => '[-a-z0-9/]+']);
+
+// Route::any('{url?}', function($url) { 
+// 	return view('index');
+// })->where(['url' => '[-a-z0-9/]+']);

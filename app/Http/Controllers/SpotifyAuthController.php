@@ -57,7 +57,7 @@ class SpotifyAuthController extends Controller
 
     	// The code given by the Spotify login page
     	$code = $request->input('code');
-
+        Log::error("Trying the callback");
 
     	if ($request->error) {
     		return "There was an error";

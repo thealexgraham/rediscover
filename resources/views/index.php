@@ -15,6 +15,8 @@
     <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.8/angular.min.js"></script> <!-- load angular -->
     <link rel="stylesheet" href="http://css-spinners.com/css/spinner/throbber.css" type="text/css">
 
+    <script src="lib/soundmanager2/script/soundmanager2-nodebug-jsmin.js"></script>
+
     <!-- ANGULAR -->
     <!-- all angular resources will be loaded from the /public folder -->
         <script src="js/controllers/mainCtrl.js"></script> <!-- load our controller -->
@@ -24,16 +26,17 @@
 
 </head> 
 <!-- declare our angular app and controller --> 
-<body class="container" ng-app="trackApp" ng-controller="mainController"> <div class="col-md-8 col-md-offset-2">
+<body class="container" ng-app="trackApp" ng-controller="mainController"> <div class="col-md-10 col-md-offset-1">
 
     <!-- PAGE TITLE =============================================== -->
     <div class="page-header">
         <h2>ReDiscover your Music</h2>
     </div>
 
-    <div class="refresh">
-      <a href="#" ng-click="refreshTracks()">Refresh Tracks</a>
+    <div class="refresh text-right">
+      <button class="btn" ng-click="refreshTracks()">Refresh Tracks</button>
     </div>
+
     
     <!-- LOADING ICON =============================================== -->
     <!-- show loading icon if the loading variable is set to true -->
@@ -57,11 +60,21 @@
               <td><a href="{{ track.url }}">{{ track.name }}</a></td>
               <td>{{ track.album_name }}</td>
               <td>{{ track.artist_name }}</td>
-              <td><a href="#" ng-click="deleteComment(comment.id)" class="text-muted">Add to Playlist</a></td>
+              <td><a href="#" ng-click="deleteComment(comment.id)" class="text-muted">Add</a></td>
             </tr>
           </tbody>
       </table>
     </div>
+
+    <div class="page-header">
+        <h4>Playlist</h2>
+    </div>
+
+    <div class="add-spotify text-right">
+      <button class="btn" ng-click="addPlaylist()">Add to Spotify</button>
+    </div>
+
+
     
 </div> 
 </body> 

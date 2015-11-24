@@ -81,7 +81,6 @@ class SpotifyAuthController extends Controller
 
     		// Store the access data
     		$data = json_decode($res->getBody(), true);
-
     		$this->session->put('access_token', $data['access_token']);
     		$this->session->put('refresh_token', $data['refresh_token']);
     		$this->session->put('token_expires_in', $data['expires_in']);
@@ -89,12 +88,11 @@ class SpotifyAuthController extends Controller
     		// Get and store the user data 
     		$userInfo = $this->doSpotifyGet('https://api.spotify.com/v1/me');
 
+            // Create the User from the database, or get it
     		$user = \App\SpotifyUser::firstOrCreate(['spotify_id' => $userInfo['id'], 'display_name' => $userInfo['display_name']]);
 
+            // Log the user into our session
     		$this->session->put('user', $user);
-
-    		// $this->session->put('spotify_id', $userInfo['id']);
-    		// $this->session->put('display_name', $userInfo['display_name']);
 
     		return redirect('/');
     	}
@@ -169,6 +167,8 @@ class SpotifyAuthController extends Controller
     				'url' => $trackInfo['external_urls']['spotify'],
     				'album_name' => $trackInfo['album']['name'],
     				'artist_name' => $trackInfo['artists'][0]['name'],
+    				'preview_url' => $trackInfo['preview_url'],
+                    'spotify_id' => $trackInfo['id'],
     			];
     			$tracks[] = $track;
     		}
@@ -190,6 +190,9 @@ class SpotifyAuthController extends Controller
 
     function rangeGroup($array, $max, &$splits) {
     	
+        if ($splits == null)
+            $splits = [];
+
     	if (empty($array)) {
     		return;
     	}
@@ -237,7 +240,7 @@ class SpotifyAuthController extends Controller
 				$this->rangeGroup($above, $max, $splits);
 				$this->rangeGroup($below, $max, $splits);
 
-    			break;
+    			return;
     		}
 
     		// This is the best count we've had so far, so store it
@@ -250,25 +253,8 @@ class SpotifyAuthController extends Controller
     	$testArray = [1, 3, 8, 9, 10, 11, 12, 30, 34, 40, 50, 51, 52, 100, 210, 222, 240, 520];
     	// $testArray = [1, 3, 45, 50, 100];
 
-    	$splitArray = [];
     	$this->rangeGroup($testArray, 5, $splitArray);
     	var_dump($splitArray);
-    	// $tracks = [];
-
-    	// for($i = 0; $i < 10; $i++) {
-    		
-    	// 	$data = $this->doSpotifyGet('https://api.spotify.com/v1/me/tracks' . '?limit=1');
-    	// 	foreach ($data['items'] as $item) {
-    	// 		$track = $item['track'];
-    	// 		$name = $track['name'];
-    	// 		$trackUrl = $track['external_urls']['spotify'];
-    	// 		$album = $track['album']['name'];
-    	// 		$artist = $track['artists'][0]['name'];
-
-    	// 		$tracks[] = $name;
-    	// 	}
-    	// }
-    	// var_dump($tracks);
     }
 
     function tracks() {
@@ -346,12 +332,4 @@ class SpotifyAuthController extends Controller
     	echo $this->getUser()->display_name;
     	//var_dump($data);
     }
-
-
 }
-
-// 1. Get number of tracks
-// 2. Select 10 random numbers within that
-// 3. Find out if any are within 50 of each other
-// 4. Any singles, do 1 per
-// 5. If any are close enough together, get them on the same request

@@ -58,8 +58,7 @@
         </thead>
           <tbody ng-hide="loading">
             <tr ng-repeat="track in tracks track by $index">
-              <td ng-hide="track.loading"><iframe src="{{'https://embed.spotify.com/?uri=' + track.spotify_uri}}" width="250" height="80" frameborder="0" allowtransparency="true"></iframe></td>
-              <!--<td><a href="{{ track.url }}"><strong>{{ track.name }}</strong></a></td>-->
+              <td><a href="{{ track.url }}"><strong>{{ track.name }}</strong></a></td>
               <td><a href="{{ track.album_url }}" class="text-muted">{{ track.album_name }}</a></td>
               <td><a href="{{ track.artist_url }}">{{ track.artist_name }}</a></td>
               <td><a href="#" ng-click="addToPlaylist(track, $index)" class="text-muted">+</a>

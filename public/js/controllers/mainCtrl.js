@@ -1,12 +1,5 @@
 angular.module('mainCtrl', [])
 
-.config(function($sceDelegateProvider) {
-        $sceDelegateProvider.resourceUrlWhitelist([
-          'self',
-          'https://embed.spotify.com/**',
-          'spotify**']);
-    })
-
 // inject the Comment service into our controller
 .controller('mainController', function($scope, $http, RandomTrack) {
 

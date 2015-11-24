@@ -40,15 +40,30 @@ angular.module('mainCtrl', [])
     }
 
     $scope.replaceTrack = function(index) {
-        $scope.tracks[index] = {
+        // Create a temporary loading object
+        var loadObject = {
             name:'Loading...',
             album_name:'---',
-            artist_name:'---'
+            artist_name:'---',
+            position: $scope.tracks.length - 1,
+            loading:true
         };
+        // Remove this track
+        $scope.tracks.splice(index, 1);
+
+        // Decrement all the positions of any other loading objects
+        for(var i=0; i < $scope.tracks.length;i++) {
+            if($scope.tracks[i].loading)
+                $scope.tracks[i].position -= 1;
+        }
+
+        // Push our new loading object at the end
+        $scope.tracks.push(loadObject);
 
         RandomTrack.get(1)
             .success(function(data) {
-                $scope.tracks[index] = data[0];
+                // Replace the load object at the correct position with the retreived track
+                $scope.tracks[loadObject.position] = data[0];
             });
     }
 

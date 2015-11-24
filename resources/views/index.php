@@ -58,9 +58,10 @@
         </thead>
           <tbody ng-hide="loading">
             <tr ng-repeat="track in tracks track by $index">
-              <td><a href="{{ track.url }}">{{ track.name }}</a></td>
-              <td>{{ track.album_name }}</td>
-              <td>{{ track.artist_name }}</td>
+              <td ng-hide="track.loading"><iframe src="{{'https://embed.spotify.com/?uri=' + track.spotify_uri}}" width="250" height="80" frameborder="0" allowtransparency="true"></iframe></td>
+              <!--<td><a href="{{ track.url }}"><strong>{{ track.name }}</strong></a></td>-->
+              <td><a href="{{ track.album_url }}" class="text-muted">{{ track.album_name }}</a></td>
+              <td><a href="{{ track.artist_url }}">{{ track.artist_name }}</a></td>
               <td><a href="#" ng-click="addToPlaylist(track, $index)" class="text-muted">+</a>
                 / <a href="#" ng-click="replaceTrack($index)" class="text-muted">x</a>
               </td>
@@ -106,9 +107,9 @@
         </thead>
           <tbody>
             <tr ng-repeat="track in playlistTracks track by $index">
-              <td><a href="{{ track.url }}">{{ track.name }}</a></td>
-              <td>{{ track.album_name }}</td>
-              <td>{{ track.artist_name }}</td>
+              <td><a href="{{ track.url }}"><strong>{{ track.name }}</strong></a></td>
+              <td><a href="{{ track.album_url }}" class="text-muted">{{ track.album_name }}</a></td>
+              <td><a href="{{ track.artist_url }}">{{ track.artist_name }}</a></td>
               <td><a href="#" ng-click="removeFromPlaylist($index)" class="text-muted">X</a></td>
             </tr>
           </tbody>

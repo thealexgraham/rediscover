@@ -1,7 +1,16 @@
 angular.module('mainCtrl', [])
 
+.config(function($sceDelegateProvider) {
+        $sceDelegateProvider.resourceUrlWhitelist([
+          'self',
+          'https://embed.spotify.com/**',
+          'spotify**']);
+    })
+
 // inject the Comment service into our controller
 .controller('mainController', function($scope, $http, RandomTrack) {
+
+
     // object to hold all the data for the new comment form
     $scope.randomTracks = {};
 
@@ -20,13 +29,16 @@ angular.module('mainCtrl', [])
         });
 
     $scope.refreshTracks = function() {
-        $scope.loading = true;
+        for (var i=0; i<$scope.tracks.length; i++) {
+            $scope.replaceTrack(i);
+        }
+        // $scope.loading = true;
         
-        RandomTrack.get(5)
-            .success(function(data) {
-                $scope.tracks = data;
-                $scope.loading = false;
-            });
+        // RandomTrack.get(5)
+        //     .success(function(data) {
+        //         $scope.tracks = data;
+        //         $scope.loading = false;
+        //     });
     }
     $scope.addToPlaylist = function(track, index) {
         $scope.playlistTracks.push(track);

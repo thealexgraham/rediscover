@@ -61,7 +61,9 @@
               <td><a href="{{ track.url }}">{{ track.name }}</a></td>
               <td>{{ track.album_name }}</td>
               <td>{{ track.artist_name }}</td>
-              <td><a href="#" ng-click="addToPlaylist(track, $index)" class="text-muted">+</a></td>
+              <td><a href="#" ng-click="addToPlaylist(track, $index)" class="text-muted">+</a>
+                / <a href="#" ng-click="replaceTrack($index)" class="text-muted">x</a>
+              </td>
             </tr>
           </tbody>
       </table>

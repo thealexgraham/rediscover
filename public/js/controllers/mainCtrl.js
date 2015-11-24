@@ -12,7 +12,7 @@ angular.module('mainCtrl', [])
     // get all the comments first and bind it to the $scope.comments object
     // use the function we created in our service
     // GET ALL COMMENTS ==============
-    RandomTrack.get()
+    RandomTrack.get(5)
         .success(function(data) {
             console.log(data);
             $scope.tracks = data;
@@ -22,7 +22,7 @@ angular.module('mainCtrl', [])
     $scope.refreshTracks = function() {
         $scope.loading = true;
         
-        RandomTrack.get()
+        RandomTrack.get(5)
             .success(function(data) {
                 $scope.tracks = data;
                 $scope.loading = false;
@@ -30,11 +30,26 @@ angular.module('mainCtrl', [])
     }
     $scope.addToPlaylist = function(track, index) {
         $scope.playlistTracks.push(track);
-        $scope.tracks.splice(index, 1);
+        //$scope.tracks.splice(index, 1);
+
+        $scope.replaceTrack(index);
 
         if ($scope.tracks.length == 0) {
             $scope.refreshTracks();
         }
+    }
+
+    $scope.replaceTrack = function(index) {
+        $scope.tracks[index] = {
+            name:'Loading...',
+            album_name:'---',
+            artist_name:'---'
+        };
+
+        RandomTrack.get(1)
+            .success(function(data) {
+                $scope.tracks[index] = data[0];
+            });
     }
 
     $scope.removeFromPlaylist = function(index) {

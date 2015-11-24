@@ -4,8 +4,8 @@ angular.module('randomTrackService', [])
 
     return {
         // get all the comments
-        get : function() {
-            return $http.get('/spotify/tracks/random');
+        get : function(n) {
+            return $http.get('/spotify/tracks/random?count=' + n);
         },
 
         // save a comment (pass in comment data)

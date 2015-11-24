@@ -299,7 +299,7 @@ class SpotifyAuthController extends Controller
 
         $info = json_decode($res->getBody(), true);
         
-        return return response()->json(array('success' => true));
+        return response()->json(array('success' => true));
     }
 
     function tracks() {

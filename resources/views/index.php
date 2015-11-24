@@ -33,20 +33,21 @@
         <h2>ReDiscover your Music</h2>
     </div>
 
-    <div class="refresh text-right">
-      <button class="btn" ng-click="refreshTracks()">Refresh Tracks</button>
+    <div class="refresh-button text-right">
+      <button class="btn" ng-click="refreshTracks()">More Tracks</button>
     </div>
 
-    
-    <!-- LOADING ICON =============================================== -->
-    <!-- show loading icon if the loading variable is set to true -->
-    <p class="text-center" ng-show="loading"> <span class="fa fa-refresh fa-3x fa-spin"></span><br>Loading from Spotify...</p>
-    
     <!-- THE COMMENTS =============================================== -->
     <!-- hide these comments if the loading variable is true -->
 
-    <div class="tracks" ng-hide="loading">
+    <div class="tracks">
       <table class="table">
+        <colgroup>
+           <col style="width: 40%;">
+           <col style="width: 35%;">
+           <col style="width: 30%;">
+           <col>
+        </colgroup>
         <thead>
           <tr>
             <th>Track Name</th>
@@ -55,16 +56,20 @@
             <th>Add</th>
           </tr>
         </thead>
-          <tbody>
+          <tbody ng-hide="loading">
             <tr ng-repeat="track in tracks track by $index">
               <td><a href="{{ track.url }}">{{ track.name }}</a></td>
               <td>{{ track.album_name }}</td>
               <td>{{ track.artist_name }}</td>
-              <td><a href="#" ng-click="deleteComment(comment.id)" class="text-muted">Add</a></td>
+              <td><a href="#" ng-click="addToPlaylist(track, $index)" class="text-muted">+</a></td>
             </tr>
           </tbody>
       </table>
     </div>
+    
+    <!-- LOADING ICON =============================================== -->
+    <!-- show loading icon if the loading variable is set to true -->
+    <p class="text-center" ng-show="loading"> <span class="fa fa-refresh fa-3x fa-spin"></span><br>Loading from Spotify...</p>
 
     <div class="page-header">
         <h4>Playlist</h2>
@@ -74,8 +79,39 @@
       <button class="btn" ng-click="addPlaylist()">Add to Spotify</button>
     </div>
 
-
+<!-- LOADING ICON =============================================== -->
+    <!-- show loading icon if the loading variable is set to true -->
+    <p class="text-center" ng-show="uploading"> <span class="fa fa-refresh fa-3x fa-spin"></span><br>Loading from Spotify...</p>
     
+    <!-- THE COMMENTS =============================================== -->
+    <!-- hide these comments if the loading variable is true -->
+
+    <div class="playlist" ng-hide="uploading">
+      <table class="table">
+        <colgroup>
+           <col style="width: 40%;">
+           <col style="width: 35%;">
+           <col style="width: 30%;">
+           <col>
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Track Name</th>
+            <th>Album</th>
+            <th>Artist</th>
+            <th></th>
+          </tr>
+        </thead>
+          <tbody>
+            <tr ng-repeat="track in playlistTracks track by $index">
+              <td><a href="{{ track.url }}">{{ track.name }}</a></td>
+              <td>{{ track.album_name }}</td>
+              <td>{{ track.artist_name }}</td>
+              <td><a href="#" ng-click="removeFromPlaylist($index)" class="text-muted">X</a></td>
+            </tr>
+          </tbody>
+      </table>
+    </div>
 </div> 
 </body> 
 </html>

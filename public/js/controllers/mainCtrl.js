@@ -7,12 +7,14 @@ angular.module('mainCtrl', [])
 
     // loading variable to show the spinning loading icon
     $scope.loading = true;
+    $scope.playlistTracks = [];
 
     // get all the comments first and bind it to the $scope.comments object
     // use the function we created in our service
     // GET ALL COMMENTS ==============
     RandomTrack.get()
         .success(function(data) {
+            console.log(data);
             $scope.tracks = data;
             $scope.loading = false;
         });
@@ -25,6 +27,22 @@ angular.module('mainCtrl', [])
                 $scope.tracks = data;
                 $scope.loading = false;
             });
+    }
+    $scope.addToPlaylist = function(track, index) {
+        $scope.playlistTracks.push(track);
+        $scope.tracks.splice(index, 1);
+
+        if ($scope.tracks.length == 0) {
+            $scope.refreshTracks();
+        }
+    }
+
+    $scope.removeFromPlaylist = function(index) {
+        $scope.playlistTracks.splice(index, 1);
+    }
+
+    $scope.doStuff = function(idx) {
+        alert(idx);
     }
 
     // function to handle submitting the form

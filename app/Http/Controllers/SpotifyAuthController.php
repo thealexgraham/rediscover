@@ -10,13 +10,14 @@ use App\Http\Controllers\Controller;
 class SpotifyAuthController extends Controller
 {
 	protected $client;
-	protected $redirectUri = 'http://localhost:8000/spotify/callback';
+	protected $redirectUri; 
 	protected $clientId = '1e6e709c8b8b4936b0a22a1dd83f3f7a';
 	protected $clientSecret = 'df6db89e1faa470db9a510754486c31f';
 
 	function __construct(\Illuminate\Session\Store $session) {
 		$client = new \GuzzleHttp\Client();
 		$this->session = $session;
+        $this->redirectUri = env('SPOTIFY_CALLBACK', 'http://localhost:8000/spotify/callback');
 	}
 
 	function getUser() {
@@ -37,8 +38,8 @@ class SpotifyAuthController extends Controller
     			'client_id' => $this->clientId,
 				'response_type' => 'code',
 				'redirect_uri' => $this->redirectUri,
-				'scope' => 'playlist-read-private user-read-email user-read-private user-library-read',
-				'show_dialog' => true
+				'scope' => 'playlist-read-private user-read-email user-read-private user-library-read playlist-modify-private playlist-modify-public',
+				'show_dialog' => "true"
 		]);
 
     	// Redirect to the spotify login page
@@ -169,6 +170,7 @@ class SpotifyAuthController extends Controller
     				'artist_name' => $trackInfo['artists'][0]['name'],
     				'preview_url' => $trackInfo['preview_url'],
                     'spotify_id' => $trackInfo['id'],
+                    'spotify_uri' => $trackInfo['uri'],
     			];
     			$tracks[] = $track;
     		}
@@ -257,6 +259,49 @@ class SpotifyAuthController extends Controller
     	var_dump($splitArray);
     }
 
+    function createPlaylist(Request $request) {
+
+        $tracks = $request->input('tracks');
+
+        $client = new \GuzzleHttp\Client();
+        $user = $this->getUser();
+        $trackUris = ["spotify:track:4iV5W9uYEdYUVa79Axb7Rh","spotify:track:1301WleyT98MSxVHPZCA6M"];
+
+        $playlistName = "Test Playlist";
+
+        // Send the request to create a new playlist
+        $uri = 'https://api.spotify.com/v1/users/' . $user->spotify_id . '/playlists';
+        $res = $client->request('POST', $uri, [
+            'headers' => [
+                'Authorization' => 'Bearer ' . session('access_token'),
+                'Content-Type' => 'application/json',
+            ],
+            'json' => [
+                'name' => $playlistName
+            ]
+        ]);
+        
+        // Get the ID for the newly created playlist
+        $info = json_decode($res->getBody(), true);
+        $playlistId = $info['id'];
+
+        // Send the request to add the tracks to the new playlist
+        $uri = 'https://api.spotify.com/v1/users/' . $user->spotify_id . '/playlists/' . $playlistId . '/tracks';
+        $res = $client->request('POST', $uri, [
+            'headers' => [
+                'Authorization' => 'Bearer ' . session('access_token'),
+                'Content-Type' => 'application/json',
+            ],
+            'json' => [
+                'uris' => $trackUris,
+            ]
+        ]);
+
+        $info = json_decode($res->getBody(), true);
+        
+        return return response()->json(array('success' => true));
+    }
+
     function tracks() {
 
     	$res = $this->doSpotifyGet('https://api.spotify.com/v1/me/tracks' . '?limit=50');
@@ -312,6 +357,7 @@ class SpotifyAuthController extends Controller
     				// Authorization error
     				if ($this->session->has('access_token')) {
     					$this->refresh();
+                        $this->doSpotifyGet($uri, $query);
     				} else {
     					return redirect('spotify/login');
     				}

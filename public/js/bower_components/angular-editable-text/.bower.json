@@ -1,0 +1,48 @@
+{
+  "name": "angular-editable-text",
+  "version": "1.1.2",
+  "appPath": "dist",
+  "main": [
+    "dist/angular-editable-text.js",
+    "dist/angular-editable-text.css"
+  ],
+  "ignore": [
+    "images/",
+    "javascripts/",
+    "node_modules/",
+    "stylesheets/",
+    "test/",
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular": "1.2.15"
+  },
+  "homepage": "https://github.com/GabiGrin/angular-editable-text",
+  "authors": [
+    "GabiGrin <gabi.grinberg@gmail.com>"
+  ],
+  "description": "In place editing for text in AngularJS.",
+  "keywords": [
+    "editable",
+    "text",
+    "angularjs",
+    "inplace",
+    "editing",
+    "directive"
+  ],
+  "license": "MIT",
+  "_release": "1.1.2",
+  "_resolution": {
+    "type": "version",
+    "tag": "1.1.2",
+    "commit": "26d3a6947a220b064c88e9914f9206b063a7ab74"
+  },
+  "_source": "git://github.com/GabiGrin/angular-editable-text.git",
+  "_target": "~1.1.2",
+  "_originalSource": "angular-editable-text",
+  "_direct": true
+}

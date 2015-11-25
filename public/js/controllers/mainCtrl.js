@@ -133,6 +133,7 @@ angular.module('mainCtrl', [])
 		// Create the playlist in spotify
 		RandomTrack.createPlaylist($scope.playlistName, trackIds)
 			.success(function(data) {
+				$scope.playlistName = "ReDiscover Playlist";
 				$scope.playlistMessage = true;
 				$scope.creating = false;
 				$scope.playlistTracks = [];

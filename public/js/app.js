@@ -1,1 +1,1 @@
-var trackApp = angular.module('trackApp', ['mainCtrl', 'randomTrackService']);
+var trackApp = angular.module('trackApp', ['mainCtrl', 'randomTrackService', 'gg.editableText']);

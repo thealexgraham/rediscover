@@ -12,6 +12,9 @@
 		<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.8/angular.min.js"></script> <!-- load angular -->
 		<link rel="stylesheet" href="http://css-spinners.com/css/spinner/throbber.css" type="text/css">
 
+		<link rel="stylesheet" href="js/bower_components/angular-editable-text/dist/angular-editable-text.min.css">
+		<script src="js/bower_components/angular-editable-text/dist/angular-editable-text.min.js"></script>
+
 		<script src="js/controllers/mainCtrl.js"></script> 
 		<script src="js/services/randomTrackService.js"></script>
 		<script src="js/app.js"></script>
@@ -77,7 +80,7 @@
 			</div>
 
 			<div class="row">
-				<div class="col-md-6"><strong>{{playlistName}}</strong></div>
+				<div class="col-md-6"><h4 editable-text="playlistName" style="text-decoration: underline"></h4></div>
 				<div class="col-md-6 text-right"> <button class="" ng-click="createPlaylist()">Add Playlist to Spotify</button></div>
 			</div>
 
@@ -116,7 +119,7 @@
 			<p class="text-center" ng-show="creating"> <span class="fa fa-refresh fa-3x fa-spin"></span><br>Creating Playlist...</p>
 			
 			<div class="text-center" ng-show="playlistMessage">
-				<p><h3>Playlist Created! </strong></h3><p>Note the playlist may take some time to show up in Spotify.</p>
+				<p><h3 >Playlist Created! </strong></h3><p>Note the playlist may take some time to show up in Spotify.</p>
 			</div>
 	
 		</div>

@@ -7,6 +7,8 @@ namespace App;
 class SpotifyService {
 
 	protected $client;
+	protected $clientId = '1e6e709c8b8b4936b0a22a1dd83f3f7a';
+    protected $clientSecret = 'df6db89e1faa470db9a510754486c31f';
 
 	function __construct(\Illuminate\Session\Store $session, \GuzzleHttp\Client $client) {
 		$this->client = $client;
@@ -93,6 +95,8 @@ class SpotifyService {
 				return $this->createResponse(false, $res->getStatusCode());
 			}
 
+			return $this->createResponse(true, $res->getStatusCode(), json_decode($res->getBody(), true));
+
 		} catch (\GuzzleHttp\Exception\RequestException $e) {
 			if($e->getResponse()->getStatusCode() == 401) {
 				\Log::error("Receiving a 401");
@@ -113,7 +117,7 @@ class SpotifyService {
 			}
 		}
 
-		return $this->createResponse(true, $res->getStatusCode(), json_decode($res->getBody(), true));
+		
 	}
 
 	/**

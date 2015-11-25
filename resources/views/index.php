@@ -12,7 +12,7 @@
 		<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.8/angular.min.js"></script> <!-- load angular -->
 		<link rel="stylesheet" href="http://css-spinners.com/css/spinner/throbber.css" type="text/css">
 
-		<link rel="stylesheet" href="js/bower_components/angular-editable-text/dist/angular-editable-text.min.css">
+		<link rel="stylesheet" href="js/bower_components/angular-editable-text/dist/angular-editable-text.css">
 		<script src="js/bower_components/angular-editable-text/dist/angular-editable-text.min.js"></script>
 
 		<script src="js/controllers/mainCtrl.js"></script> 
@@ -80,7 +80,7 @@
 			</div>
 
 			<div class="row">
-				<div class="col-md-6"><h4 editable-text="playlistName" style="text-decoration: underline"></h4></div>
+				<div class="col-md-6"><h4 editable-text="playlistName"></h4></div>
 				<div class="col-md-6 text-right"> <button class="" ng-click="createPlaylist()">Add Playlist to Spotify</button></div>
 			</div>
 

@@ -44,7 +44,7 @@ class SpotifyController extends Controller
 		$tracks = [];
 
 		// Get a track to find the number of tracks we currently have
-		$data = $this->spotifyService->doSpotifyGet('https://api.spotify.com/v1/me/tracks' . '?limit=1');
+		$data = $this->spotifyService->get('https://api.spotify.com/v1/me/tracks' . '?limit=1');
 		$totalTracks = $data['total'] - 1; // Minus 1 for index
 
 		// Get random track numbers
@@ -70,7 +70,7 @@ class SpotifyController extends Controller
 			$limit = $trackRequest[count($trackRequest) - 1] - $trackRequest[0] + 1;
 
 			// Do the request
-			$data = $this->spotifyService->doSpotifyGet("https://api.spotify.com/v1/me/tracks?offset=$offset&limit=$limit"); //, ['offset' => $offset, 'limit' => $limit]);
+			$data = $this->spotifyService->get("https://api.spotify.com/v1/me/tracks?offset=$offset&limit=$limit");
 			
 			if ($data == 502) {
 				// If we got a bad gateway, there was a problem, so return that
@@ -109,7 +109,8 @@ class SpotifyController extends Controller
 
 		// Send the request to create a new playlist
 		$uri = 'https://api.spotify.com/v1/users/' . $user->spotify_id . '/playlists';
-		$res = $this->client->request('POST', $uri, [
+
+		$res = $this->spotifyService->post($uri, [
 			'headers' => [
 				'Authorization' => 'Bearer ' . $this->session->get('access_token'),
 				'Content-Type' => 'application/json',
@@ -125,7 +126,7 @@ class SpotifyController extends Controller
 
 		// Send the request to add the tracks to the new playlist
 		$uri = 'https://api.spotify.com/v1/users/' . $user->spotify_id . '/playlists/' . $playlistId . '/tracks';
-		$res = $this->client->request('POST', $uri, [
+		$res = $this->spotifyService->post($uri, [
 			'headers' => [
 				'Authorization' => 'Bearer ' . $this->session->get('access_token'),
 				'Content-Type' => 'application/json',
@@ -216,7 +217,7 @@ class SpotifyController extends Controller
 	 */
 	function tracks() {
 
-		$res = $this->spotifyService->doSpotifyGet('https://api.spotify.com/v1/me/tracks');
+		$res = $this->spotifyService->get('https://api.spotify.com/v1/me/tracks');
 
 		echo $res['total'];
 
@@ -225,7 +226,7 @@ class SpotifyController extends Controller
 		$tracks = [];
 
 		while ($more) {
-			$data = $this->spotifyService->doSpotifyGet($uri);
+			$data = $this->spotifyService->get($uri);
 
 			foreach ($data['items'] as $item) {
 				$track = $item['track'];
@@ -252,7 +253,7 @@ class SpotifyController extends Controller
 	 * @return [type]           [description]
 	 */
 	function getMeInfo(Request $request) {
-		$data = $this->spotifyService->doSpotifyGet("https://api.spotify.com/v1/me", []);
+		$data = $this->spotifyService->get("https://api.spotify.com/v1/me", []);
 		return response()->json(['success' => true, 'data' => $data]);
 	}
 }

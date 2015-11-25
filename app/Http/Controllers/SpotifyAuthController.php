@@ -90,8 +90,7 @@ class SpotifyAuthController extends Controller
         } else {
 
             // Now we need to get the Auth tokens
-            try {
-                $res = $this->client->request('POST', "https://accounts.spotify.com/api/token", [
+            $res = $this->spotifyService->post("https://accounts.spotify.com/api/token", [
                     'form_params' => [
                         'grant_type' => 'authorization_code',
                         'code' => $code,
@@ -100,9 +99,7 @@ class SpotifyAuthController extends Controller
                         'client_secret' => $this->clientSecret
                     ],
                 ]);
-            } catch (\GuzzleHttp\Exception\RequestException $e) {
-                dd($e->getResponse()->getBody(true));
-            }
+
 
             // Store the access data
             $data = json_decode($res->getBody(), true);
@@ -111,7 +108,7 @@ class SpotifyAuthController extends Controller
             $this->session->put('token_expires_in', $data['expires_in']);
 
             // Get and store the user data 
-            $userInfo = $this->spotifyService->doSpotifyGet('https://api.spotify.com/v1/me');
+            $userInfo = $this->spotifyService->get('https://api.spotify.com/v1/me');
 
             if($userInfo['display_name'] == null) {
                 $userInfo['display_name'] = $userInfo['id'];

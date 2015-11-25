@@ -115,10 +115,8 @@ class SpotifyAuthController extends Controller
 	    				'client_secret' => $this->clientSecret
 	    			],
     			]);
-                \Log::error($res->getBody());
 				$responseData = json_decode($res->getBody(), true);
 				$this->session->put('access_token', $responseData['access_token']);
-                \Log::error($this->session->get('access_token'));
     		} catch (\GuzzleHttp\Exception\RequestException $e) {
     			dd($e->getResponse()->getBody(true));
     		}
@@ -162,26 +160,31 @@ class SpotifyAuthController extends Controller
 
     		// Do the request
     		$data = $this->doSpotifyGet("https://api.spotify.com/v1/me/tracks?offset=$offset&limit=$limit"); //, ['offset' => $offset, 'limit' => $limit]);
-
-    		foreach ($trackRequest as $trackIdx) {
-    			$trackInfo = $data['items'][$trackIdx - $offset]['track'];
-    			$track = [
-    				'name' => $trackInfo['name'],
-    				'url' => $trackInfo['external_urls']['spotify'],
-    				'album_name' => $trackInfo['album']['name'],
-                    'album_url' => $trackInfo['album']['external_urls']['spotify'],
-    				'artist_name' => $trackInfo['artists'][0]['name'],
-                    'artist_url' => $trackInfo['artists'][0]['external_urls']['spotify'],
-    				'preview_url' => $trackInfo['preview_url'],
-                    'spotify_id' => $trackInfo['id'],
-                    'spotify_uri' => $trackInfo['uri'],
-                    'album_img' => $trackInfo['album']['images'][2]['url'],
-    			];
-    			$tracks[] = $track;
-    		}
+            
+            if ($data == 502) {
+                // If we got a bad gateway, there was a problem, so return that
+                return response()->json(['success' => false]);
+            } else {
+                foreach ($trackRequest as $trackIdx) {
+                    $trackInfo = $data['items'][$trackIdx - $offset]['track'];
+                    $track = [
+                        'name' => $trackInfo['name'],
+                        'url' => $trackInfo['external_urls']['spotify'],
+                        'album_name' => $trackInfo['album']['name'],
+                        'album_url' => $trackInfo['album']['external_urls']['spotify'],
+                        'artist_name' => $trackInfo['artists'][0]['name'],
+                        'artist_url' => $trackInfo['artists'][0]['external_urls']['spotify'],
+                        'preview_url' => $trackInfo['preview_url'],
+                        'spotify_id' => $trackInfo['id'],
+                        'spotify_uri' => $trackInfo['uri'],
+                        'album_img' => $trackInfo['album']['images'][2]['url'],
+                    ];
+                    $tracks[] = $track;
+                }
+            }
     	}
 
-    	return $tracks;
+    	return response()->json(['success' => true, 'data' => $tracks]);
     }
 
     function gatherTrackInfo($item) {
@@ -315,6 +318,10 @@ class SpotifyAuthController extends Controller
     				]
     			]);
     			
+                if ($res->getStatusCode() != 200) {
+                    return $res->getStatusCode();
+                }
+
 	    		$info = json_decode($res->getBody(), true);
 
 	    		return $info;

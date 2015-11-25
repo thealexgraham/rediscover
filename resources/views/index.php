@@ -26,104 +26,110 @@
 
 </head> 
 <!-- declare our angular app and controller --> 
-<body class="container" ng-app="trackApp" ng-controller="mainController"> <div class="col-md-10 col-md-offset-1">
+<body class="container" ng-app="trackApp" ng-controller="mainController">
+  <div class="header col-md-10 col-md-offset-1 text-right">
+      <a href="/logout">Logout</a>
+  </div>
 
-    <!-- PAGE TITLE =============================================== -->
-    <div class="page-header">
-        <h2>ReDiscover your Music</h2>
-    </div>
 
-    <div class="refresh-button text-right">
-      <button class="btn" ng-click="refreshTracks()">More Tracks</button>
-    </div>
+  <div class="col-md-10 col-md-offset-1">
 
-    <!-- THE COMMENTS =============================================== -->
-    <!-- hide these comments if the loading variable is true -->
+      <!-- PAGE TITLE =============================================== -->
+      <div class="page-header">
+          <h2>ReDiscover your Music</h2>
+      </div>
 
-    <div class="tracks">
-      <table class="table">
-        <colgroup>
-          <col style="width:42px">
-          <col style="width: 40%;">
-          <col style="width: 35%;">
-          <col style="width: 30%;">
-          <col>
-        </colgroup>
-        <thead>
-          <tr>
-            <th></th>
-            <th>Track Name</th>
-            <th>Album</th>
-            <th>Artist</th>
-            <th>Edit</th>
-          </tr>
-        </thead>
-          <tbody ng-hide="loading">
-            <tr ng-repeat="track in tracks track by $index">
-              <td><img ng-src="{{track.album_img}}" width="42" height="42"></td>
-              <td><a href="{{ track.url }}"><strong>{{ track.name }}</strong></a></td>
-              <td><a href="{{ track.album_url }}" class="text-muted">{{ track.album_name }}</a></td>
-              <td><a href="{{ track.artist_url }}">{{ track.artist_name }}</a></td>
-              <td><a href="#" ng-click="addToPlaylist(track, $index)" class="text-muted">+</a>
-                / <a href="#" ng-click="replaceTrack($index)" class="text-muted">x</a>
-              </td>
+      <div class="refresh-button text-right">
+        <button class="" ng-click="refreshTracks()">More Tracks</button>
+      </div>
+
+      <div class="tracks">
+        <table class="table">
+          <colgroup>
+            <col>
+            <col style="width: 35%;">
+            <col style="width: 30%;">
+            <col style="width: 20%;">
+            <col>
+          </colgroup>
+          <thead>
+            <tr>
+              <th></th>
+              <th>Track Name</th>
+              <th>Album</th>
+              <th>Artist</th>
+              <th></th>
             </tr>
-          </tbody>
-      </table>
-    </div>
-    
-    <!-- LOADING ICON =============================================== -->
-    <!-- show loading icon if the loading variable is set to true -->
-    <p class="text-center" ng-show="loading"> <span class="fa fa-refresh fa-3x fa-spin"></span><br>Loading from Spotify...</p>
+          </thead>
+            <tbody ng-hide="loading">
+              <tr ng-repeat="track in tracks track by $index">
+                <td><img ng-src="{{track.album_img}}" width="42" height="42"></td>
+                <td><a href="{{ track.url }}"><strong>{{ track.name }}</strong></a></td>
+                <td><a href="{{ track.album_url }}" class="text-muted">{{ track.album_name }}</a></td>
+                <td><a href="{{ track.artist_url }}" class="text-muted">{{ track.artist_name }}</a></td>
+                <td><div style="width:70px">
+                      <button ng-click="addToPlaylist(track, $index)" class="text-success btn-success">+</button> |
+                      <button ng-click="replaceTrack($index)" class="text-danger btn-danger">x</button>
+                    </div>
+                </td>
+              </tr>
+            </tbody>
+        </table>
+      </div>
+      
+      <!-- LOADING ICON =============================================== -->
+      <!-- show loading icon if the loading variable is set to true -->
+      <p class="text-center" ng-show="loading"> <span class="fa fa-refresh fa-3x fa-spin"></span><br>Loading from Spotify...</p>
 
-    <div class="page-header">
-        <h3>Playlist Creation</h3>
-    </div>
+      <div class="page-header">
+          <h3>Playlist Creation</h3>
+      </div>
 
-    <div class="row">
-        <div class="col-md-6"><strong>{{playlistName}}</strong></div>
-        <div class="col-md-6 text-right"> <button class="btn" ng-click="createPlaylist()">Add Playlist to Spotify</button></div>
-    </div>     
+      <div class="row">
+          <div class="col-md-6"><strong>{{playlistName}}</strong></div>
+          <div class="col-md-6 text-right"> <button class="" ng-click="createPlaylist()">Add Playlist to Spotify</button></div>
+      </div>     
 
 
-<!-- LOADING ICON =============================================== -->
-    <!-- show loading icon if the loading variable is set to true -->
-    <p class="text-center" ng-show="uploading"> <span class="fa fa-refresh fa-3x fa-spin"></span><br>Loading from Spotify...</p>
-    
-    <!-- THE COMMENTS =============================================== -->
-    <!-- hide these comments if the loading variable is true -->
+  <!-- LOADING ICON =============================================== -->
+      <!-- show loading icon if the loading variable is set to true -->
+      <p class="text-center" ng-show="uploading"> <span class="fa fa-refresh fa-3x fa-spin"></span><br>Loading from Spotify...</p>
+      
+      <!-- THE COMMENTS =============================================== -->
+      <!-- hide these comments if the loading variable is true -->
 
-    <div class="playlist" ng-hide="creating">
-      <table class="table">
-        <colgroup>
-           <col style="width: 40%;">
-           <col style="width: 35%;">
-           <col style="width: 30%;">
-           <col>
-        </colgroup>
-        <thead>
-          <tr>
-            <th></th>
-            <th>Track Name</th>
-            <th>Album</th>
-            <th>Artist</th>
-            <th>Edit</th>
-          </tr>
-        </thead>
-          <tbody ng-hide="loading">
-            <tr ng-repeat="track in playlistTracks track by $index">
-              <td><img ng-src="{{track.album_img}}" width="42" height="42"></td>
-              <td><a href="{{ track.url }}"><strong>{{ track.name }}</strong></a></td>
-              <td><a href="{{ track.album_url }}" class="text-muted">{{ track.album_name }}</a></td>
-              <td><a href="{{ track.artist_url }}">{{ track.artist_name }}</a></td>
-              <td><a href="#" ng-click="removeFromPlaylist($index)" class="text-muted">X</a></td>
+      <div class="playlist" ng-hide="creating">
+        <table class="table">
+          <colgroup>
+            <col style="width:42px">
+             <col style="width: 40%;">
+             <col style="width: 35%;">
+             <col style="width: 30%;">
+             <col>
+          </colgroup>
+          <thead>
+            <tr>
+              <th></th>
+              <th>Track Name</th>
+              <th>Album</th>
+              <th>Artist</th>
+              <th>Edit</th>
             </tr>
-          </tbody>
-      </table>
-    </div>
+          </thead>
+            <tbody ng-hide="creating">
+              <tr ng-repeat="track in playlistTracks track by $index">
+                <td><img ng-src="{{track.album_img}}" width="42" height="42"></td>
+                <td><a href="{{ track.url }}"><strong>{{ track.name }}</strong></a></td>
+                <td><a href="{{ track.album_url }}" class="text-muted">{{ track.album_name }}</a></td>
+                <td><a href="{{ track.artist_url }}" class="text-muted">{{ track.artist_name }}</a></td>
+                <td><button ng-click="removeFromPlaylist($index)" class="btn-danger">X</button></td>
+              </tr>
+            </tbody>
+        </table>
+      </div>
 
-    <p class="text-center" ng-show="creating"> <span class="fa fa-refresh fa-3x fa-spin"></span><br>Creating Playlist...</p>
+      <p class="text-center" ng-show="creating"> <span class="fa fa-refresh fa-3x fa-spin"></span><br>Creating Playlist...</p>
 
-</div> 
+  </div> 
 </body> 
 </html>

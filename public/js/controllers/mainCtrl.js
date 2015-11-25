@@ -12,30 +12,44 @@ angular.module('mainCtrl', [])
     $scope.creating = false;
     $scope.playlistTracks = [];
     $scope.playlistName = 'ReDiscover Playlist 12/12/12';
-    // get all the comments first and bind it to the $scope.comments object
-    // use the function we created in our service
-    // GET ALL COMMENTS ==============
-    RandomTrack.get(5)
-        .success(function(data) {
-            console.log(data);
-            $scope.tracks = data;
-            $scope.loading = false;
-        });
 
     $scope.refreshTracks = function() {
         // for (var i=0; i<$scope.tracks.length; i++) {
         //     $scope.replaceTrack(i);
         // }
         $scope.loading = true;
+        $scope.tracks = [];
         
         RandomTrack.get(5)
-            .success(function(data) {
-                $scope.tracks = data;
+            .success(function(res) {
                 $scope.loading = false;
+                if (res.success) {
+                    $scope.tracks = res.data;
+                } else {
+                    var problemObject = {
+                        name:'There was a problem, please try again.',
+                        album_name:'---',
+                        artist_name:'---',
+                        position: $scope.tracks.length - 1,
+                        album_img:'img/blank.png'
+                    }
+                    $scope.tracks.push(problemObject);
+                }
+            })
+            .error(function(res) {
+                $scope.loading = false;
+                var problemObject = {
+                        name:'There was a problem, please try again.',
+                        album_name:'---',
+                        artist_name:'---',
+                        position: $scope.tracks.length - 1,
+                        album_img:'img/blank.png'
+                }
+                $scope.tracks.push(problemObject);
             });
     }
     $scope.addToPlaylist = function(track, index) {
-        $scope.playlistTracks.push(track);
+        $scope.playlistTracks.unshift(track);
         //$scope.tracks.splice(index, 1);
 
         $scope.replaceTrack(index);
@@ -48,7 +62,7 @@ angular.module('mainCtrl', [])
     $scope.replaceTrack = function(index) {
         // Create a temporary loading object
         var loadObject = {
-            name:'Loading...',
+            name:'Retrieving new track...',
             album_name:'---',
             artist_name:'---',
             position: $scope.tracks.length - 1,
@@ -68,9 +82,14 @@ angular.module('mainCtrl', [])
         $scope.tracks.push(loadObject);
 
         RandomTrack.get(1)
-            .success(function(data) {
-                // Replace the load object at the correct position with the retreived track
-                $scope.tracks[loadObject.position] = data[0];
+            .success(function(res) {
+                if (res.success) {
+                    // Replace the load object at the correct position with the retreived track
+                    $scope.tracks[loadObject.position] = res.data[0];
+                } else {
+                    loadObject.name = 'Error, please retry.';
+                }
+
             });
     }
 
@@ -93,48 +112,6 @@ angular.module('mainCtrl', [])
             });
     }
 
-    // function to handle submitting the form
-    // SAVE A COMMENT ================
-    $scope.submitComment = function() {
-        $scope.loading = true;
-
-        // save the comment. pass in comment data from the form
-        // use the function we created in our service
-        Comment.save($scope.commentData)
-            .success(function(data) {
-
-                // if successful, we'll need to refresh the comment list
-                Comment.get()
-                    .success(function(getData) {
-                        $scope.comments = getData;
-                        $scope.loading = false;
-                    });
-
-            })
-            .error(function(data) {
-                console.log(data);
-            });
-    };
-
-    // function to handle deleting a comment
-    // DELETE A COMMENT ====================================================
-    $scope.deleteComment = function(id) {
-        $scope.loading = true;
-
-        // use the function we created in our service
-        Comment.destroy(id)
-            .success(function(data) {
-                // if successful, we'll need to refresh the comment list
-                Comment.get()
-                    .success(function(getData) {
-                        $scope.comments = getData;
-                        $scope.loading = false;
-                    });
-
-            })
-            .error(function(data) {
-            	console.log(data);
-            });
-    };
+    $scope.refreshTracks();
 
 });

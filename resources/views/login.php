@@ -3,31 +3,24 @@
   <head>
     <title>Example of the Authorization Code flow with Spotify</title>
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css"> <!-- load fontawesome -->
     <style type="text/css">
-      #loggedin {
-        display: none;
-      }
-      .text-overflow {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        width: 500px;
+      .col-centered{
+          float: none;
+          margin: 0 auto;
       }
     </style>
   </head>
 
   <body>
     <div class="container">
-      <div id="login">
-        <h1>This is an example of the Authorization Code flow</h1>
-        <a href="spotify/login" class="btn btn-primary">Log in with Spotify</a>
-      </div>
-      <div id="loggedin">
-        <div id="user-profile">
+      <div class="row">
+        <div class="col-lg-12">
+          <div class="page-header"><h1>Spotify ReDiscover</h1></div>
+          <h4> Rediscover music you haven't listened to in ages.</h4> 
+          <p>Spotify ReDiscover will show you random tracks from your saved music library. Pick your favorites and add them to a playlist to Spotify and get listening!</p>
+          <a href="spotify/login" class="btn btn-primary">Log in with Spotify</a>
         </div>
-        <div id="oauth">
-        </div>
-        <button class="btn btn-default" id="obtain-new-token">Obtain new token using the refresh token</button>
       </div>
     </div>
 </html>

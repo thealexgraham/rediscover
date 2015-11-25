@@ -51,7 +51,7 @@ class SpotifyController extends Controller
 				'client_id' => $this->clientId,
 				'response_type' => 'code',
 				'redirect_uri' => $this->redirectUri,
-				'scope' => 'playlist-read-private user-read-email user-read-private user-library-read playlist-modify-private playlist-modify-public',
+				'scope' => 'playlist-read-private user-library-read playlist-modify-private',
 				'show_dialog' => "true"
 		]);
 

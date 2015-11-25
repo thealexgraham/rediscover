@@ -1,6 +1,6 @@
 <!doctype html> 
 <html lang="en"> 
-	<head> <meta charset="UTF-8"> <title>Laravel and Angular Comment System</title>
+	<head> <meta charset="UTF-8"> <title>ReDiscover Spotify</title>
 
 		<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.0/css/bootstrap.min.css">
 		<link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css">
@@ -115,6 +115,7 @@
 		</div>
 
 		<p class="text-center" ng-show="creating"> <span class="fa fa-refresh fa-3x fa-spin"></span><br>Creating Playlist...</p>
+		<p class="text-center" ng-show="doneCreating"> Playlist Created!</p>
 
 	</body> 
 </html>

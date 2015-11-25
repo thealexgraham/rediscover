@@ -10,6 +10,7 @@ angular.module('mainCtrl', [])
 	// loading variable to show the spinning loading icon
 	$scope.loading = true;
 	$scope.creating = false;
+	$scope.doneCreating = false;
 	$scope.playlistTracks = [];
 	$scope.playlistName = 'ReDiscover Playlist';
 
@@ -48,9 +49,23 @@ angular.module('mainCtrl', [])
 		list.push(problemObject);
 	}
 
+	$scope.createLoadingTrack = function(list) {
+		var loadingObject = {
+			name:'There was a problem, please try again.',
+			album_name:'---',
+			artist_name:'---',
+			position: $scope.tracks.length - 1,
+			album_img:'img/blank.png'
+		}
+		return loadingObject;
+	}
+
 	// Move a track from the list of random tracks to the
 	// playlist at the bottom
 	$scope.addToPlaylist = function(track, index) {
+
+		// If we were showing a created message, stop
+		$scope.doneCreating = false;
 
 		// Add the playlist to the beginning of the track
 		$scope.playlistTracks.unshift(track);
@@ -117,8 +132,9 @@ angular.module('mainCtrl', [])
 		// Create the playlist in spotify
 		RandomTrack.createPlaylist($scope.playlistName, trackIds)
 			.success(function(data) {
+				$scope.doneCreating = true;
 				$scope.creating = false;
-				alert("Playlist successfully created!");
+				$scope.playlistTracks = [];
 			});
 	}
 

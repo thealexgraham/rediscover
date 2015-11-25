@@ -17,9 +17,15 @@
       <div class="row">
         <div class="col-lg-12">
           <div class="page-header"><h1>Spotify ReDiscover</h1></div>
-          <h4> Rediscover music you haven't listened to in ages.</h4> 
-          <p>Spotify ReDiscover will show you random tracks from your saved music library. Pick your favorites and add them to a playlist to Spotify and get listening!</p>
-          <a href="spotify/login" class="btn btn-primary">Log in with Spotify</a>
+          <div>
+            <h4> Rediscover music you haven't listened to in ages.</h4> 
+            <p>Spotify ReDiscover will show you random tracks from your saved music library. Pick your favorites and add them to a playlist to Spotify and get listening!</p>
+            <p>If you do not have a Spotify account, or do not have any saved tracks, please use the account (username: faketestuser password: Test%%%)</p>
+          <div>
+          <div class="login">
+            <a href="spotify/login" class="btn btn-primary">Log in with Spotify</a>
+
+          </div>
         </div>
       </div>
     </div>

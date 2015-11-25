@@ -1,4 +1,7 @@
 TODOS
 
-1. Logout button
-2. Slightly nicer landing page
+1. Show who it is
+
+
+Refactor
+- Split the SpotifyController into Auth and Retrieve etc

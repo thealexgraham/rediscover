@@ -6,20 +6,16 @@ use Illuminate\Http\Request;
 
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
-use GuzzleHttp;
 
+/**
+ * Contains functions that return Spotify data to API requests
+ */
 class SpotifyController extends Controller
 {
-	protected $client;
-	protected $redirectUri; 
-	protected $clientId = '1e6e709c8b8b4936b0a22a1dd83f3f7a';
-	protected $clientSecret = 'df6db89e1faa470db9a510754486c31f';
 	protected $spotifyService;
 
-	function __construct(\Illuminate\Session\Store $session, \GuzzleHttp\Client $client, \App\SpotifyService $spotifyService) {
-		$this->client = $client;
+	function __construct(\Illuminate\Session\Store $session, \App\SpotifyService $spotifyService) {
 		$this->session = $session;
-		$this->redirectUri = env('SPOTIFY_CALLBACK', 'http://localhost:8000/spotify/callback');
 		$this->spotifyService = $spotifyService;
 	}
 
@@ -44,7 +40,9 @@ class SpotifyController extends Controller
 		$tracks = [];
 
 		// Get a track to find the number of tracks we currently have
-		$data = $this->spotifyService->get('https://api.spotify.com/v1/me/tracks' . '?limit=1');
+		$res = $this->spotifyService->get('https://api.spotify.com/v1/me/tracks' . '?limit=1');
+		$data = $res->getData();
+
 		$totalTracks = $data['total'] - 1; // Minus 1 for index
 
 		// Get random track numbers
@@ -70,13 +68,15 @@ class SpotifyController extends Controller
 			$limit = $trackRequest[count($trackRequest) - 1] - $trackRequest[0] + 1;
 
 			// Do the request
-			$data = $this->spotifyService->get("https://api.spotify.com/v1/me/tracks?offset=$offset&limit=$limit");
+			$res = $this->spotifyService->get("https://api.spotify.com/v1/me/tracks?offset=$offset&limit=$limit");
 			
-			if ($data == 502) {
-				// If we got a bad gateway, there was a problem, so return that
-				return response()->json(['success' => false]);
+			if ($res->getSuccess() == false) {
+				// If we had a problem, resturn the access code
+				return response()->json(['success' => false, 'status_code' => $res->getStatusCode()]);
 			} else {
+				$data = $res->getData();
 				foreach ($trackRequest as $trackIdx) {
+					// Get the information from the track
 					$trackInfo = $data['items'][$trackIdx - $offset]['track'];
 					$track = [
 						'name' => $trackInfo['name'],
@@ -98,12 +98,17 @@ class SpotifyController extends Controller
 		return response()->json(['success' => true, 'data' => $tracks]);
 	}
 
-
+	/**
+	 * Creates a playlist from the tracks sent in the Request body
+	 * @param  Request $request Should contain a JSON with trackUrls and name
+	 * @return json             A response with the playlist and tracks if needed by the API user
+	 */
 	function createPlaylist(Request $request) {
-		$data = $request->json()->all();
-		$trackUris = $data['trackUris']; //$request->input('tracks');
-		$playlistName = $data['name'];
 
+		// Retreive the info from the JSON request
+		$data = $request->json()->all();
+		$trackUris = $data['trackUris']; 
+		$playlistName = $data['name'];
 
 		$user = $this->getUser();
 
@@ -121,7 +126,7 @@ class SpotifyController extends Controller
 		]);
 		
 		// Get the ID for the newly created playlist
-		$playlistInfo = json_decode($res->getBody(), true);
+		$playlistInfo = $res->getData();
 		$playlistId = $playlistInfo['id'];
 
 		// Send the request to add the tracks to the new playlist
@@ -136,7 +141,7 @@ class SpotifyController extends Controller
 			]
 		]);
 
-		$info = json_decode($res->getBody(), true);
+		$info = $res->getData();
 		
 		return response()->json(array('success' => true, 'playlist' => $playlistInfo, 'tracks' => $info));
 	}
@@ -144,16 +149,16 @@ class SpotifyController extends Controller
 
 	/**
 	 * Helper function that takes in an array of SORTED numbers and groups numbers that are within the range
-	 * given by $max. $splits should be given as the array to be filled
+	 * given by $max. $groups should be given as the array to be filled
 	 * @param  array $array   the array to be grouped
 	 * @param  int $max     the number of 
-	 * @param  array &$splits array to be returned, c style (return style was actually slower)
+	 * @param  array &$groups array to be returned, c style (return style was actually slower)
 	 * @return none     
 	 */
-	function rangeGroup($array, $max, &$splits) {
+	function rangeGroup($array, $max, &$groups) {
 		
-		if ($splits == null)
-			$splits = [];
+		if ($groups == null)
+			$groups = [];
 
 		if (empty($array)) {
 			return;
@@ -161,14 +166,14 @@ class SpotifyController extends Controller
 
 		if (count($array) == 1) {
 			// Last array, just add it to the splits
-			$splits[] = [$array[0]];
+			$groups[] = [$array[0]];
 			return;
 		}
 
 		if ($array[1] > $array[0] + $max) {
 			// If this number isn't in a group with the number above it, add it to the splits and move on
-			$splits[] = [$array[0]];
-			$this->rangeGroup(array_slice($array, 1), $max, $splits);
+			$groups[] = [$array[0]];
+			$this->rangeGroup(array_slice($array, 1), $max, $groups);
 			return;
 		}
 
@@ -196,11 +201,11 @@ class SpotifyController extends Controller
 				$above = array_slice($array, $bestIdx + $bestCount);
 				
 				// Add to the current splits
-				$splits[] = $adding;
+				$groups[] = $adding;
 
 				// Add the ranges for the numbers above and below
-				$this->rangeGroup($above, $max, $splits);
-				$this->rangeGroup($below, $max, $splits);
+				$this->rangeGroup($above, $max, $groups);
+				$this->rangeGroup($below, $max, $groups);
 
 				return;
 			}
@@ -218,15 +223,15 @@ class SpotifyController extends Controller
 	function tracks() {
 
 		$res = $this->spotifyService->get('https://api.spotify.com/v1/me/tracks');
-
-		echo $res['total'];
+		$data = $res->getData();
 
 		$more = true;
 		$uri = 'https://api.spotify.com/v1/me/tracks';
 		$tracks = [];
 
 		while ($more) {
-			$data = $this->spotifyService->get($uri);
+			$res = $this->spotifyService->get($uri);
+			$data = $res->getData();
 
 			foreach ($data['items'] as $item) {
 				$track = $item['track'];
@@ -253,7 +258,8 @@ class SpotifyController extends Controller
 	 * @return [type]           [description]
 	 */
 	function getMeInfo(Request $request) {
-		$data = $this->spotifyService->get("https://api.spotify.com/v1/me", []);
+		$res = $this->spotifyService->get("https://api.spotify.com/v1/me");
+		$data = $res->getData();
 		return response()->json(['success' => true, 'data' => $data]);
 	}
 }

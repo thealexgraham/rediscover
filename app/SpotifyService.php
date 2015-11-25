@@ -1,11 +1,12 @@
 <?php
 namespace App;
 
+/**
+ * Class responseible for making any calls to the Spotify API
+ */
 class SpotifyService {
 
 	protected $client;
-	protected $retries = 0;
-	protected $maxRetries = 5;
 
 	function __construct(\Illuminate\Session\Store $session, \GuzzleHttp\Client $client) {
 		$this->client = $client;
@@ -38,6 +39,13 @@ class SpotifyService {
 			return true;
 	}
 
+	/**
+	 * Does a POST to the given URI. Since the POSTs require different ways of doing credentials,
+	 * the user of the function should pass them in correctly. Will refresh access token if a 401 is returned.
+	 * @param  string $uri   The URI to GET
+	 * @param  array  $params All of the parameters
+	 * @return ServiceResponse Object containing the response
+	 */
 	function post($uri, $params) {
 		try {
 			$res = $this->client->request('POST', $uri, $params);
@@ -51,23 +59,24 @@ class SpotifyService {
 					if ($this->refresh())
 						$this->post($uri, $params);
 					else
-						return 401;
+						return $this->createResponse(false, 401);
 				} else {
-					return 401;
+					return $this->createResponse(false, 401);
 				}
 			} else {
 				return $e->getResponse()->getStatusCode();
 			}
 		}
-		
-		return $res;
+
+		return $this->createResponse(true, $res->getStatusCode(), json_decode($res->getBody(), true));
 	}
 
 	/**
-	 * Perform a get to the spotify service and return the information
-	 * @param  [type] $uri   [description]
-	 * @param  array  $query [description]
-	 * @return [type]        [description]
+	 * Perform a get to the spotify service and return the information. This will use the access code
+	 * already stored. Will refresh the access token if necessar	
+	 * @param  string $uri   The URI to GET
+	 * @param  array  $query extra queries to do (not implemented)
+	 * @return ServiceResponse Object containing the response
 	 */
 	function get($uri, $query = []) {
 
@@ -81,12 +90,8 @@ class SpotifyService {
 			
 			// If there was a problem, return the status code instead
 			if ($res->getStatusCode() != 200) {
-				return $res->getStatusCode();
+				return $this->createResponse(false, $res->getStatusCode());
 			}
-
-			$info = json_decode($res->getBody(), true);
-
-			return $info;
 
 		} catch (\GuzzleHttp\Exception\RequestException $e) {
 			if($e->getResponse()->getStatusCode() == 401) {
@@ -102,13 +107,23 @@ class SpotifyService {
 				} else {
 					return 401;
 				}
-
-			// Redirect to login
 			} else {
-				echo $e->getResponse()->getStatusCode() . "\n";
-				echo $e->getResponse()->getBody();
-
+				// Other access code problem, return false and send the access code
+				return $this->createResponse(false, $e->getResponse()->getStatusCode());
 			}
 		}
+
+		return $this->createResponse(true, $res->getStatusCode(), json_decode($res->getBody(), true));
+	}
+
+	/**
+	 * Creates a response object to send back to the Controllers
+	 * @param  Boolean $success Whether or not the call was successful
+	 * @param  integer $code    The status code of the response
+	 * @param  array  $data     The json decoded data the spotify service sent
+	 * @return ServiceResponse  An object containing all of these
+	 */
+	function createResponse($success, $code, $data = []) {
+		return new \App\ServiceResponse($success, $code, $data);
 	}
 }

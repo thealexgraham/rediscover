@@ -5,18 +5,18 @@ use Illuminate\Http\Request;
 
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
-use GuzzleHttp;
 
+/**
+ * Contains functinos that authenticates the user with the Spotify API
+ */
 class SpotifyAuthController extends Controller
 {
-    protected $client;
-    protected $redirectUri; 
+    protected $redirectUri;
     protected $clientId = '1e6e709c8b8b4936b0a22a1dd83f3f7a';
     protected $clientSecret = 'df6db89e1faa470db9a510754486c31f';
     protected $spotifyService;
 
-    function __construct(\Illuminate\Session\Store $session, \GuzzleHttp\Client $client, \App\SpotifyService $spotifyService) {
-        $this->client = $client;
+    function __construct(\Illuminate\Session\Store $session, \App\SpotifyService $spotifyService) {
         $this->session = $session;
         $this->redirectUri = env('SPOTIFY_CALLBACK', 'http://localhost:8000/spotify/callback');
         $this->spotifyService = $spotifyService;
@@ -102,7 +102,11 @@ class SpotifyAuthController extends Controller
 
 
             // Store the access data
-            $data = json_decode($res->getBody(), true);
+            if ($res->getSuccess() == false) {
+                return "There was an error";
+            }
+
+            $data = $res->getData();
             $this->session->put('access_token', $data['access_token']);
             $this->session->put('refresh_token', $data['refresh_token']);
             $this->session->put('token_expires_in', $data['expires_in']);

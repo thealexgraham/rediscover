@@ -1,27 +1,20 @@
-## Laravel PHP Framework
+## ReDiscover
 
-[![Build Status](https://travis-ci.org/laravel/framework.svg)](https://travis-ci.org/laravel/framework)
-[![Total Downloads](https://poser.pugx.org/laravel/framework/d/total.svg)](https://packagist.org/packages/laravel/framework)
-[![Latest Stable Version](https://poser.pugx.org/laravel/framework/v/stable.svg)](https://packagist.org/packages/laravel/framework)
-[![Latest Unstable Version](https://poser.pugx.org/laravel/framework/v/unstable.svg)](https://packagist.org/packages/laravel/framework)
-[![License](https://poser.pugx.org/laravel/framework/license.svg)](https://packagist.org/packages/laravel/framework)
+Rediscover music you haven't listened to in ages.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable, creative experience to be truly fulfilling. Laravel attempts to take the pain out of development by easing common tasks used in the majority of web projects, such as authentication, routing, sessions, queueing, and caching.
+Spotify ReDiscover will show you random tracks from your saved music library. Pick your favorites and add them to a playlist to Spotify and get listening!
 
-Laravel is accessible, yet powerful, providing powerful tools needed for large, robust applications. A superb inversion of control container, expressive migration system, and tightly integrated unit testing support give you the tools you need to build any application with which you are tasked.
 
-## Official Documentation
+## Information
+This is a sample app I created to show off some of my web development skills.
 
-Documentation for the framework can be found on the [Laravel website](http://laravel.com/docs).
+The backend, which communicates with the Spotify API is done in Laravel 5. The frontend uses angular.js.
 
-## Contributing
+Once the user is authenticated with Spotify, they are presented with 5 random tracks from their "Saved" playlist. The user can then choose tracks to be added to a list, which can eventually be published to their Spotify account as a playlist. As the random tracks are selected or removed, new ones are added in their place. The user can also refresh and get five new choices.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](http://laravel.com/docs/contributions).
+## Live Demo
 
-## Security Vulnerabilities
+Try out a live demo at [rediscover.alexgraham.net](http://rediscover.alexgraham.net).
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell at taylor@laravel.com. All security vulnerabilities will be promptly addressed.
-
-### License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](http://opensource.org/licenses/MIT)
+Note that this requires SAVED tracks in your Spotify account. If you do not have saved tracks, or you do not have a Spotify account at all, use the following account:
+username: faketestuser password: Test%%%

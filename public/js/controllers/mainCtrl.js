@@ -136,6 +136,7 @@ angular.module('mainCtrl', [])
 				$scope.playlistMessage = true;
 				$scope.creating = false;
 				$scope.playlistTracks = [];
+				console.log(data);
 			});
 	}
 

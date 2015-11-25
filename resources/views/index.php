@@ -115,7 +115,7 @@
 		</div>
 
 		<p class="text-center" ng-show="creating"> <span class="fa fa-refresh fa-3x fa-spin"></span><br>Creating Playlist...</p>
-		<p class="text-center" ng-show="playlistMessage"><strong>Playlist Created!</strong></p>
+		<div class="text-center" ng-show="playlistMessage"><p><h3>Playlist Created! </strong></h3><p>Note the playlist may take some time to show up in Spotify.</p></div>
 	</body> 
 
 	<script>

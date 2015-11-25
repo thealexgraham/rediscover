@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
+use GuzzleHttp;
 
 class SpotifyController extends Controller
 {
@@ -14,8 +15,8 @@ class SpotifyController extends Controller
 	protected $clientId = '1e6e709c8b8b4936b0a22a1dd83f3f7a';
 	protected $clientSecret = 'df6db89e1faa470db9a510754486c31f';
 
-	function __construct(\Illuminate\Session\Store $session) {
-		$client = new \GuzzleHttp\Client();
+	function __construct(\Illuminate\Session\Store $session, \GuzzleHttp\Client $client) {
+		$this->client = $client;
 		$this->session = $session;
 		$this->redirectUri = env('SPOTIFY_CALLBACK', 'http://localhost:8000/spotify/callback');
 	}
@@ -82,17 +83,14 @@ class SpotifyController extends Controller
 
 		// The code given by the Spotify login page
 		$code = $request->input('code');
-		\Log::error("Trying the callback");
 
 		if ($request->error) {
 			return "There was an error";
 		} else {
 
 			// Now we need to get the Auth tokens
-			$client = new \GuzzleHttp\Client();
-
 			try {
-				$res = $client->request('POST', "https://accounts.spotify.com/api/token", [
+				$res = $this->client->request('POST', "https://accounts.spotify.com/api/token", [
 					'form_params' => [
 						'grant_type' => 'authorization_code',
 						'code' => $code,
@@ -135,12 +133,10 @@ class SpotifyController extends Controller
 	function refresh() {
 
 			// Now we need to get the Auth tokens
-			$client = new \GuzzleHttp\Client();
-
 			try {
 
 				// Get a new access token
-				$res = $client->request('POST', "https://accounts.spotify.com/api/token", [
+				$res = $this->client->request('POST', "https://accounts.spotify.com/api/token", [
 					'form_params' => [
 						'grant_type' => 'refresh_token',
 						'refresh_token' => $this->session->get('refresh_token'),
@@ -224,6 +220,49 @@ class SpotifyController extends Controller
 		return response()->json(['success' => true, 'data' => $tracks]);
 	}
 
+
+	function createPlaylist(Request $request) {
+		$data = $request->json()->all();
+		$trackUris = $data['trackUris']; //$request->input('tracks');
+		$playlistName = $data['name'];
+
+
+		$user = $this->getUser();
+
+		// Send the request to create a new playlist
+		$uri = 'https://api.spotify.com/v1/users/' . $user->spotify_id . '/playlists';
+		$res = $this->client->request('POST', $uri, [
+			'headers' => [
+				'Authorization' => 'Bearer ' . $this->session->get('access_token'),
+				'Content-Type' => 'application/json',
+			],
+			'json' => [
+				'name' => $playlistName
+			]
+		]);
+		
+		// Get the ID for the newly created playlist
+		$playlistInfo = json_decode($res->getBody(), true);
+		$playlistId = $playlistInfo['id'];
+
+		// Send the request to add the tracks to the new playlist
+		$uri = 'https://api.spotify.com/v1/users/' . $user->spotify_id . '/playlists/' . $playlistId . '/tracks';
+		$res = $this->client->request('POST', $uri, [
+			'headers' => [
+				'Authorization' => 'Bearer ' . $this->session->get('access_token'),
+				'Content-Type' => 'application/json',
+			],
+			'json' => [
+				'uris' => $trackUris,
+			]
+		]);
+
+		$info = json_decode($res->getBody(), true);
+		
+		return response()->json(array('success' => true, 'playlist' => $playlistInfo, 'tracks' => $info));
+	}
+
+
 	/**
 	 * Helper function that takes in an array of SORTED numbers and groups numbers that are within the range
 	 * given by $max. $splits should be given as the array to be filled
@@ -293,52 +332,10 @@ class SpotifyController extends Controller
 		}
 	}
 
-	function createPlaylist(Request $request) {
-		$data = $request->json()->all();
-		$trackUris = $data['trackUris']; //$request->input('tracks');
-		$playlistName = $data['name'];
-		$client = new \GuzzleHttp\Client();
-		$user = $this->getUser();
-
-		// Send the request to create a new playlist
-		$uri = 'https://api.spotify.com/v1/users/' . $user->spotify_id . '/playlists';
-		$res = $client->request('POST', $uri, [
-			'headers' => [
-				'Authorization' => 'Bearer ' . $this->session->get('access_token'),
-				'Content-Type' => 'application/json',
-			],
-			'json' => [
-				'name' => $playlistName
-			]
-		]);
-		
-		// Get the ID for the newly created playlist
-		$info = json_decode($res->getBody(), true);
-		$playlistId = $info['id'];
-
-		// Send the request to add the tracks to the new playlist
-		$uri = 'https://api.spotify.com/v1/users/' . $user->spotify_id . '/playlists/' . $playlistId . '/tracks';
-		$res = $client->request('POST', $uri, [
-			'headers' => [
-				'Authorization' => 'Bearer ' . $this->session->get('access_token'),
-				'Content-Type' => 'application/json',
-			],
-			'json' => [
-				'uris' => $trackUris,
-			]
-		]);
-
-		$info = json_decode($res->getBody(), true);
-		
-		return response()->json(array('success' => true));
-	}
-
 	function doSpotifyGet($uri, $query = []) {
 
-		$client = new \GuzzleHttp\Client();
-
 		try {
-			$res = $client->request('GET', $uri, [
+			$res = $this->client->request('GET', $uri, [
 				'headers' => [
 					'Authorization' => 'Bearer ' . $this->session->get('access_token')
 				]

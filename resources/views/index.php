@@ -28,7 +28,7 @@
 <!-- declare our angular app and controller --> 
 <body class="container" ng-app="trackApp" ng-controller="mainController">
   <div class="header col-md-10 col-md-offset-1 text-right">
-      <a href="/logout">Logout</a>
+      <a href="spotify/logout">Logout</a>
   </div>
 
 

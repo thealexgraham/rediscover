@@ -11,31 +11,25 @@
 |
 */
 
-Route::get('/login', 'SpotifyAuthController@index');
-Route::get('/logout', 'SpotifyAuthController@logout');
-
-
 Route::group(['prefix' => 'spotify'], function () {
-	Route::get('login', 'SpotifyAuthController@login');
-	Route::get('callback', 'SpotifyAuthController@callback');
-	Route::get('tracks/random', 'SpotifyAuthController@randomTracks');
-	Route::get('tracks', 'SpotifyAuthController@tracks');
-	Route::post('playlists', 'SpotifyAuthController@createPlaylist');
-	Route::get('playlists/create', 'SpotifyAuthController@createPlaylist');
-	Route::get('refresh', 'SpotifyAuthController@refresh');
+
+	// Authentication
+	Route::get('login', 'SpotifyController@login');
+	Route::get('logout', 'SpotifyController@logout');
+	Route::get('refresh', 'SpotifyController@refresh');
+	Route::get('callback', 'SpotifyController@callback');
+
+	// Tracks
+	Route::get('tracks/random', 'SpotifyController@randomTracks');
+	Route::get('tracks', 'SpotifyController@tracks');
+	
+	// Playlists
+	Route::post('playlists', 'SpotifyController@createPlaylist');
+
+	// Other
+	Route::get('me', 'SpotifyController@getMeInfo');
+
 });
 
-Route::post('test', function (Request $request) {
-	dd($request);
-});
-
-Route::get('me', 'SpotifyAuthController@showMeInfo');
-
-
-Route::get('tentracks', 'SpotifyAuthController@tentracks');
-
-Route::any('{url?}', 'SpotifyAuthController@index')->where(['url' => '[-a-z0-9/]+']);
-
-// Route::any('{url?}', function($url) { 
-// 	return view('index');
-// })->where(['url' => '[-a-z0-9/]+']);
+// Route everything else to the index (which will route to either the Angular page, or the login page)
+Route::any('{url?}', 'SpotifyController@index')->where(['url' => '[-a-z0-9/]+']);

@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
-class SpotifyAuthController extends Controller
+class SpotifyController extends Controller
 {
 	protected $client;
 	protected $redirectUri; 
@@ -20,10 +20,19 @@ class SpotifyAuthController extends Controller
         $this->redirectUri = env('SPOTIFY_CALLBACK', 'http://localhost:8000/spotify/callback');
 	}
 
+    /**
+     * Helper function that just returns the user
+     * @return User
+     */
 	function getUser() {
 		return $this->session->get('user');
 	}
 
+    /**
+     * The main index, checks if there is a user logged in and routes it accordingly
+     * 
+     * @return view
+     */
 	function index() {
 		if (!$this->session->has('access_token')) {
 			return view('login');
@@ -32,6 +41,10 @@ class SpotifyAuthController extends Controller
 		}
 	}
 
+    /**
+     * Attempts to redirect the user to the Spotify authentication page
+     * @return Redirect
+     */
     function login() {
     	// Create a query with our information
     	$query = http_build_query([
@@ -46,13 +59,24 @@ class SpotifyAuthController extends Controller
    		return redirect('https://accounts.spotify.com/authorize?' . $query);
     }
 
+    /**
+     * Logs the user out of the application
+     * @return Redirect login page
+     */
     function logout() {
     	$this->session->forget('access_token');
     	$this->session->forget('refresh_token');
     	$this->session->forget('user');
-    	return redirect('/login');
+    	return redirect('/');
     }
 
+    /**
+     * Called when the user has OK'd the authentication request. Responsible for 
+     * then using the access code to request an authentication token and adding the 
+     * user to the session. Stores the User in the database for later use
+     * @param  Request  $request 
+     * @return Redirect to home
+     */
     function callback(Request $request) {
 
     	// The code given by the Spotify login page
@@ -99,6 +123,10 @@ class SpotifyAuthController extends Controller
     	}
     }
 
+    /**
+     * Used to refresh the authentication token given by Spotify
+     * @return true if authentication worked
+     */
     function refresh() {
 
     		// Now we need to get the Auth tokens
@@ -124,6 +152,11 @@ class SpotifyAuthController extends Controller
             return true;
     }
 
+    /**
+     * Returns a number of random tracks from the users saved tracks given by the query string 'count'
+     * @param  Request $request 
+     * @return json of track data
+     */
     function randomTracks(Request $request) {
 
     	$count = $request->input('count', 5);
@@ -187,17 +220,14 @@ class SpotifyAuthController extends Controller
     	return response()->json(['success' => true, 'data' => $tracks]);
     }
 
-    function gatherTrackInfo($item) {
-		$track = $item['track'];
-		$name = $track['name'];
-		$trackUrl = $track['external_urls']['spotify'];
-		$album = $track['album']['name'];
-		$artist = $track['artists'][0]['name'];
-
-		$tracks[] = $name;
-    }
-
-
+    /**
+     * Helper function that takes in an array of SORTED numbers and groups numbers that are within the range
+     * given by $max. $splits should be given as the array to be filled
+     * @param  array $array   the array to be grouped
+     * @param  int $max     the number of 
+     * @param  array &$splits array to be returned, c style (return style was actually slower)
+     * @return none     
+     */
     function rangeGroup($array, $max, &$splits) {
     	
         if ($splits == null)
@@ -257,14 +287,6 @@ class SpotifyAuthController extends Controller
     		$bestCount = $count;
     		$bestIdx = $i;
     	}
-    }
-
-    function tentracks() {
-    	$testArray = [1, 3, 8, 9, 10, 11, 12, 30, 34, 40, 50, 51, 52, 100, 210, 222, 240, 520];
-    	// $testArray = [1, 3, 45, 50, 100];
-
-    	$this->rangeGroup($testArray, 5, $splitArray);
-    	var_dump($splitArray);
     }
 
     function createPlaylist(Request $request) {
@@ -351,16 +373,18 @@ class SpotifyAuthController extends Controller
 
     }
 
+    /**
+     * Retreive all tracks (not in use) 
+     * @return json with tracks as data
+     */
     function tracks() {
 
-        $res = $this->doSpotifyGet('https://api.spotify.com/v1/me/tracks' . '?limit=50');
+        $res = $this->doSpotifyGet('https://api.spotify.com/v1/me/tracks');
 
         echo $res['total'];
 
         $more = true;
         $uri = 'https://api.spotify.com/v1/me/tracks';
-        $limit = 20;
-        $offset = 0;
         $tracks = [];
 
         while ($more) {
@@ -382,11 +406,16 @@ class SpotifyAuthController extends Controller
                 $uri = $data['next'];
             }
         }
-        var_dump($tracks);
+        return response()->json(['success' => true, 'data' => $tracks]);
     }
 
-    function showMeInfo(Request $request) {
+    /**
+     * Get all me info
+     * @param  Request $request [description]
+     * @return [type]           [description]
+     */
+    function getMeInfo(Request $request) {
     	$data = $this->doSpotifyGet("https://api.spotify.com/v1/me", []);
-    	echo $this->getUser()->display_name;
+    	return response()->json(['success' => true, 'data' => $data]);
     }
 }

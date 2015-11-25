@@ -5,7 +5,7 @@ Rediscover music you haven't listened to in ages.
 Spotify ReDiscover will show you random tracks from your saved music library. Pick your favorites and add them to a playlist to Spotify and get listening!
 
 ## Information
-This is a sample app I created to show off some of my web development skills.
+This is a sample app I wrote to show off some of my web development skills.
 
 The backend, which communicates with the Spotify API is done in Laravel 5. The frontend uses angular.js.
 

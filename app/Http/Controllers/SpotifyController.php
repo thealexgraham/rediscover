@@ -37,7 +37,7 @@ class SpotifyController extends Controller
 		if (!$this->session->has('access_token')) {
 			return view('login');
 		} else {
-			return view('index'); //redirect('/');
+			return view('index');
 		}
 	}
 
@@ -170,11 +170,10 @@ class SpotifyController extends Controller
 
 		// Get a track to find the number of tracks we currently have
 		$data = $this->doSpotifyGet('https://api.spotify.com/v1/me/tracks' . '?limit=1');
-		$totalTracks = $data['total'];
+		$totalTracks = $data['total'] - 1; // Minus 1 for index
 
-		// Get 10 random track numbers
+		// Get random track numbers
 		$trackNums = [];
-
 		for ($i=0; $i < $count; $i++) {
 			while(in_array($num = mt_rand(0, $totalTracks), $trackNums)){}
 			$trackNums[] = $num;

@@ -113,6 +113,10 @@ class SpotifyController extends Controller
 			// Get and store the user data 
 			$userInfo = $this->doSpotifyGet('https://api.spotify.com/v1/me');
 
+			if($userInfo['display_name'] == null) {
+				$userInfo['display_name'] = $userInfo['id'];
+			}
+
 			// Create the User from the database, or get it
 			$user = \App\SpotifyUser::firstOrCreate(['spotify_id' => $userInfo['id'], 'display_name' => $userInfo['display_name']]);
 

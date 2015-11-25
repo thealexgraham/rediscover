@@ -112,7 +112,8 @@ class SpotifyAuthController extends Controller
             $this->session->put('token_expires_in', $data['expires_in']);
 
             // Get and store the user data 
-            $userInfo = $this->spotifyService->get('https://api.spotify.com/v1/me');
+            $res = $this->spotifyService->get('https://api.spotify.com/v1/me');
+            $userInfo = $res->getData();
 
             if($userInfo['display_name'] == null) {
                 $userInfo['display_name'] = $userInfo['id'];

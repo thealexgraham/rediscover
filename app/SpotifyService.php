@@ -7,12 +7,14 @@ namespace App;
 class SpotifyService {
 
 	protected $client;
-	protected $clientId = '1e6e709c8b8b4936b0a22a1dd83f3f7a';
-    protected $clientSecret = 'df6db89e1faa470db9a510754486c31f';
+	protected $clientId;
+    protected $clientSecret;
 
 	function __construct(\Illuminate\Session\Store $session, \GuzzleHttp\Client $client) {
 		$this->client = $client;
 		$this->session = $session;
+		$this->clientId = env('SPOTIFY_CLIENT_ID');
+        $this->clientSecret = env('SPOTIFY_CLIENT_SECRET');
 	}
 
 	/**

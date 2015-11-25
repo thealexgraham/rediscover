@@ -16,14 +16,26 @@ class ServiceResponse {
 		$this->data = $data;
 	}
 
+	/**
+	 * Whether or not the request succeeded
+	 * @return bool 
+	 */
 	function getSuccess() {
 		return $this->success;
 	}
 
+	/**
+	 * The HTTP status code
+	 * @return int
+	 */
 	function getStatusCode() {
 		return $this->statusCode;
 	}
 
+	/**
+	 * The body of the response
+	 * @return array or other
+	 */
 	function getData() {
 		return $this->data;
 	}

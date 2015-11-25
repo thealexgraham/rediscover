@@ -12,13 +12,15 @@ use App\Http\Controllers\Controller;
 class SpotifyAuthController extends Controller
 {
     protected $redirectUri;
-    protected $clientId = '1e6e709c8b8b4936b0a22a1dd83f3f7a';
-    protected $clientSecret = 'df6db89e1faa470db9a510754486c31f';
+    protected $clientId;
+    protected $clientSecret;
     protected $spotifyService;
 
     function __construct(\Illuminate\Session\Store $session, \App\SpotifyService $spotifyService) {
         $this->session = $session;
         $this->redirectUri = env('SPOTIFY_CALLBACK', 'http://localhost:8000/spotify/callback');
+        $this->clientId = env('SPOTIFY_CLIENT_ID');
+        $this->clientSecret = env('SPOTIFY_CLIENT_SECRET');
         $this->spotifyService = $spotifyService;
     }
 
@@ -37,9 +39,9 @@ class SpotifyAuthController extends Controller
      */
     function index() {
         if (!$this->session->has('access_token')) {
+            // If there is no authentication token, we need to get one
             return view('login');
         } else {
-            //\JavaScript::put(['username' => 'Alex Graham']);
             return view('index')->with('username', $this->getUser()->display_name);
         }
     }
@@ -103,9 +105,8 @@ class SpotifyAuthController extends Controller
 
             // Store the access data
             if ($res->getSuccess() == false) {
-                return "There was an error";
+                return "There was an error, please try again.";
             }
-
             $data = $res->getData();
             $this->session->put('access_token', $data['access_token']);
             $this->session->put('refresh_token', $data['refresh_token']);
@@ -115,6 +116,7 @@ class SpotifyAuthController extends Controller
             $res = $this->spotifyService->get('https://api.spotify.com/v1/me');
             $userInfo = $res->getData();
 
+            // If a user isn't signed up through Facebook they may not have a display name, so use their ID
             if($userInfo['display_name'] == null) {
                 $userInfo['display_name'] = $userInfo['id'];
             }

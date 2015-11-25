@@ -2,13 +2,9 @@ angular.module('mainCtrl', [])
 
 // inject the Comment service into our controller
 .controller('mainController', function($scope, $http, RandomTrack) {
-
-	$scope.username = window.username;
-	// object to hold all the data for the new comment form
-	$scope.randomTracks = {};
-
-	// loading variable to show the spinning loading icon
-	//$scope.loading = true;
+	
+	// Initialize variables
+	$scope.username = window.username; 
 	$scope.creating = false;
 	$scope.playlistMessage = false;
 	$scope.playlistTracks = [];
@@ -16,31 +12,33 @@ angular.module('mainCtrl', [])
 
 	// Get 5 new tracks and replace all of the random ones
 	$scope.refreshTracks = function() {
-		// for (var i=0; i<$scope.tracks.length; i++) {
-		//     $scope.replaceTrack(i);
-		// }
+
+		// Create and add 5 loading tracks
 		$scope.tracks = [];
 		for (var i=0; i<5; i++) {
 			$scope.tracks.push($scope.createLoadingTrack());
 		}
 		
+		// Get five tracks and put them in the tracks array
 		RandomTrack.get(5)
 			.success(function(res) {
 				if (res.success) {
 					$scope.tracks = res.data;
 				} else {
+					// Show error track
 					$scope.tracks = [];
 					$scope.tracks.unshift($scope.createErrorTrack());
 				}
 			})
 			.error(function(res) {
+				// Show error track
 				$scope.tracks = [];
 				$scope.tracks.unshift($scope.createErrorTrack());
 			});
 	}
 
-	// Add a track that shows an error
-	$scope.createErrorTrack = function(list) {
+	// Create a track that shows an error
+	$scope.createErrorTrack = function() {
 		var problemObject = {
 			name:'There was a problem, please try again.',
 			album_name:'---',
@@ -50,7 +48,8 @@ angular.module('mainCtrl', [])
 		return problemObject;
 	}
 
-	$scope.createLoadingTrack = function(list) {
+	// Create a track that shows the page is loading a new track
+	$scope.createLoadingTrack = function() {
 		var loadingObject = {
 			name:'Retreiving new track...',
 			album_name:'---',
@@ -79,14 +78,8 @@ angular.module('mainCtrl', [])
 	$scope.replaceTrack = function(index) {
 
 		// Create a temporary loading object
-		var loadObject = {
-			name:'Retrieving new track...',
-			album_name:'---',
-			artist_name:'---',
-			position: $scope.tracks.length - 1,
-			album_img:'img/blank.png',
-			loading:true
-		};
+		var loadObject = $scope.createLoadingTrack();
+		loadObject.position = $scope.tracks.length - 1;
 
 		// Remove this track
 		$scope.tracks.splice(index, 1);
@@ -133,11 +126,11 @@ angular.module('mainCtrl', [])
 		// Create the playlist in spotify
 		RandomTrack.createPlaylist($scope.playlistName, trackIds)
 			.success(function(data) {
+				// Reset the playlist name, show the playlist message and remove the tracks
 				$scope.playlistName = "ReDiscover Playlist";
 				$scope.playlistMessage = true;
 				$scope.creating = false;
 				$scope.playlistTracks = [];
-				console.log(data);
 			});
 	}
 

@@ -43,21 +43,24 @@
     <div class="tracks">
       <table class="table">
         <colgroup>
-           <col style="width: 40%;">
-           <col style="width: 35%;">
-           <col style="width: 30%;">
-           <col>
+          <col style="width:42px">
+          <col style="width: 40%;">
+          <col style="width: 35%;">
+          <col style="width: 30%;">
+          <col>
         </colgroup>
         <thead>
           <tr>
+            <th></th>
             <th>Track Name</th>
             <th>Album</th>
             <th>Artist</th>
-            <th>Add</th>
+            <th>Edit</th>
           </tr>
         </thead>
           <tbody ng-hide="loading">
             <tr ng-repeat="track in tracks track by $index">
+              <td><img ng-src="{{track.album_img}}" width="42" height="42"></td>
               <td><a href="{{ track.url }}"><strong>{{ track.name }}</strong></a></td>
               <td><a href="{{ track.album_url }}" class="text-muted">{{ track.album_name }}</a></td>
               <td><a href="{{ track.artist_url }}">{{ track.artist_name }}</a></td>
@@ -74,12 +77,14 @@
     <p class="text-center" ng-show="loading"> <span class="fa fa-refresh fa-3x fa-spin"></span><br>Loading from Spotify...</p>
 
     <div class="page-header">
-        <h4>Playlist</h2>
+        <h3>Playlist Creation</h3>
     </div>
 
-    <div class="add-spotify text-right">
-      <button class="btn" ng-click="addPlaylist()">Add to Spotify</button>
-    </div>
+    <div class="row">
+        <div class="col-md-6"><strong>{{playlistName}}</strong></div>
+        <div class="col-md-6 text-right"> <button class="btn" ng-click="createPlaylist()">Add Playlist to Spotify</button></div>
+    </div>     
+
 
 <!-- LOADING ICON =============================================== -->
     <!-- show loading icon if the loading variable is set to true -->
@@ -88,7 +93,7 @@
     <!-- THE COMMENTS =============================================== -->
     <!-- hide these comments if the loading variable is true -->
 
-    <div class="playlist" ng-hide="uploading">
+    <div class="playlist" ng-hide="creating">
       <table class="table">
         <colgroup>
            <col style="width: 40%;">
@@ -98,14 +103,16 @@
         </colgroup>
         <thead>
           <tr>
+            <th></th>
             <th>Track Name</th>
             <th>Album</th>
             <th>Artist</th>
-            <th></th>
+            <th>Edit</th>
           </tr>
         </thead>
-          <tbody>
+          <tbody ng-hide="loading">
             <tr ng-repeat="track in playlistTracks track by $index">
+              <td><img ng-src="{{track.album_img}}" width="42" height="42"></td>
               <td><a href="{{ track.url }}"><strong>{{ track.name }}</strong></a></td>
               <td><a href="{{ track.album_url }}" class="text-muted">{{ track.album_name }}</a></td>
               <td><a href="{{ track.artist_url }}">{{ track.artist_name }}</a></td>
@@ -114,6 +121,9 @@
           </tbody>
       </table>
     </div>
+
+    <p class="text-center" ng-show="creating"> <span class="fa fa-refresh fa-3x fa-spin"></span><br>Creating Playlist...</p>
+
 </div> 
 </body> 
 </html>

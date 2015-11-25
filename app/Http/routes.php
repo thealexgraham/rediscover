@@ -20,7 +20,9 @@ Route::group(['prefix' => 'spotify'], function () {
 	Route::get('callback', 'SpotifyAuthController@callback');
 	Route::get('tracks/random', 'SpotifyAuthController@randomTracks');
 	Route::get('tracks', 'SpotifyAuthController@tracks');
+	Route::post('playlists', 'SpotifyAuthController@createPlaylist');
 	Route::get('playlists/create', 'SpotifyAuthController@createPlaylist');
+	Route::get('refresh', 'SpotifyAuthController@refresh');
 });
 
 Route::post('test', function (Request $request) {

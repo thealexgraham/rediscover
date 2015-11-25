@@ -57,7 +57,7 @@ class SpotifyAuthController extends Controller
 
     	// The code given by the Spotify login page
     	$code = $request->input('code');
-        Log::error("Trying the callback");
+        \Log::error("Trying the callback");
 
     	if ($request->error) {
     		return "There was an error";
@@ -115,13 +115,15 @@ class SpotifyAuthController extends Controller
 	    				'client_secret' => $this->clientSecret
 	    			],
     			]);
-
+                \Log::error($res->getBody());
 				$responseData = json_decode($res->getBody(), true);
-				$this->session->set('access_token', $responseData['access_token']);
-
+				$this->session->put('access_token', $responseData['access_token']);
+                \Log::error($this->session->get('access_token'));
     		} catch (\GuzzleHttp\Exception\RequestException $e) {
     			dd($e->getResponse()->getBody(true));
     		}
+
+            return true;
     }
 
     function randomTracks(Request $request) {
@@ -173,6 +175,7 @@ class SpotifyAuthController extends Controller
     				'preview_url' => $trackInfo['preview_url'],
                     'spotify_id' => $trackInfo['id'],
                     'spotify_uri' => $trackInfo['uri'],
+                    'album_img' => $trackInfo['album']['images'][2]['url'],
     			];
     			$tracks[] = $track;
     		}
@@ -262,20 +265,17 @@ class SpotifyAuthController extends Controller
     }
 
     function createPlaylist(Request $request) {
-
-        $tracks = $request->input('tracks');
-
+        $data = $request->json()->all();
+        $trackUris = $data['trackUris']; //$request->input('tracks');
+        $playlistName = $data['name'];
         $client = new \GuzzleHttp\Client();
         $user = $this->getUser();
-        $trackUris = ["spotify:track:4iV5W9uYEdYUVa79Axb7Rh","spotify:track:1301WleyT98MSxVHPZCA6M"];
-
-        $playlistName = "Test Playlist";
 
         // Send the request to create a new playlist
         $uri = 'https://api.spotify.com/v1/users/' . $user->spotify_id . '/playlists';
         $res = $client->request('POST', $uri, [
             'headers' => [
-                'Authorization' => 'Bearer ' . session('access_token'),
+                'Authorization' => 'Bearer ' . $this->session->get('access_token'),
                 'Content-Type' => 'application/json',
             ],
             'json' => [
@@ -291,7 +291,7 @@ class SpotifyAuthController extends Controller
         $uri = 'https://api.spotify.com/v1/users/' . $user->spotify_id . '/playlists/' . $playlistId . '/tracks';
         $res = $client->request('POST', $uri, [
             'headers' => [
-                'Authorization' => 'Bearer ' . session('access_token'),
+                'Authorization' => 'Bearer ' . $this->session->get('access_token'),
                 'Content-Type' => 'application/json',
             ],
             'json' => [
@@ -304,40 +304,6 @@ class SpotifyAuthController extends Controller
         return response()->json(array('success' => true));
     }
 
-    function tracks() {
-
-    	$res = $this->doSpotifyGet('https://api.spotify.com/v1/me/tracks' . '?limit=50');
-
-    	echo $res['total'];
-
-    	$more = true;
-    	$uri = 'https://api.spotify.com/v1/me/tracks';
-    	$limit = 20;
-    	$offset = 0;
-    	$tracks = [];
-
-    	while ($more) {
-    		$data = $this->doSpotifyGet($uri);
-
-    		foreach ($data['items'] as $item) {
-    			$track = $item['track'];
-    			$name = $track['name'];
-    			$trackUrl = $track['external_urls']['spotify'];
-    			$album = $track['album']['name'];
-    			$artist = $track['artists'][0]['name'];
-
-    			$tracks[] = $name;
-    		}
-
-    		if ($data['next'] == null) {
-    			$more = false;
-    		} else {
-    			$uri = $data['next'];
-    		}
-    	}
-    	var_dump($tracks);
-    }
-
     function doSpotifyGet($uri, $query = []) {
 
     	   $client = new \GuzzleHttp\Client();
@@ -345,7 +311,7 @@ class SpotifyAuthController extends Controller
     	    try {
     			$res = $client->request('GET', $uri, [
     				'headers' => [
-    					'Authorization' => 'Bearer ' . session('access_token')
+    					'Authorization' => 'Bearer ' . $this->session->get('access_token')
     				]
     			]);
     			
@@ -355,11 +321,14 @@ class SpotifyAuthController extends Controller
 
     		} catch (\GuzzleHttp\Exception\RequestException $e) {
     			if($e->getResponse()->getStatusCode() == 401) {
+                    \Log::error("Receiving a 401");
 
     				// Authorization error
     				if ($this->session->has('access_token')) {
-    					$this->refresh();
-                        $this->doSpotifyGet($uri, $query);
+                        \Log::error("Trying to refresh");
+    					//$this->refresh();
+                        if ($this->refresh()) 
+                            $this->doSpotifyGet($uri, $query);
     				} else {
     					return redirect('spotify/login');
     				}
@@ -375,9 +344,42 @@ class SpotifyAuthController extends Controller
 
     }
 
+    function tracks() {
+
+        $res = $this->doSpotifyGet('https://api.spotify.com/v1/me/tracks' . '?limit=50');
+
+        echo $res['total'];
+
+        $more = true;
+        $uri = 'https://api.spotify.com/v1/me/tracks';
+        $limit = 20;
+        $offset = 0;
+        $tracks = [];
+
+        while ($more) {
+            $data = $this->doSpotifyGet($uri);
+
+            foreach ($data['items'] as $item) {
+                $track = $item['track'];
+                $name = $track['name'];
+                $trackUrl = $track['external_urls']['spotify'];
+                $album = $track['album']['name'];
+                $artist = $track['artists'][0]['name'];
+
+                $tracks[] = $name;
+            }
+
+            if ($data['next'] == null) {
+                $more = false;
+            } else {
+                $uri = $data['next'];
+            }
+        }
+        var_dump($tracks);
+    }
+
     function showMeInfo(Request $request) {
     	$data = $this->doSpotifyGet("https://api.spotify.com/v1/me", []);
     	echo $this->getUser()->display_name;
-    	//var_dump($data);
     }
 }

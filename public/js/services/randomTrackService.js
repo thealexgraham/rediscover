@@ -8,6 +8,17 @@ angular.module('randomTrackService', [])
             return $http.get('/spotify/tracks/random?count=' + n);
         },
 
+        createPlaylist : function(name, tracks) {
+            return $http({
+                method: 'POST',
+                url: '/spotify/playlists',
+                data: {
+                    name:name,
+                    trackUris: tracks
+                }
+            });
+        },
+
         // save a comment (pass in comment data)
         save : function(commentData) {
             return $http({

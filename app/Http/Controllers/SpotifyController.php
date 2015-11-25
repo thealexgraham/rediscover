@@ -14,11 +14,13 @@ class SpotifyController extends Controller
 	protected $redirectUri; 
 	protected $clientId = '1e6e709c8b8b4936b0a22a1dd83f3f7a';
 	protected $clientSecret = 'df6db89e1faa470db9a510754486c31f';
+	protected $spotifyService;
 
-	function __construct(\Illuminate\Session\Store $session, \GuzzleHttp\Client $client) {
+	function __construct(\Illuminate\Session\Store $session, \GuzzleHttp\Client $client, \App\SpotifyService $spotifyService) {
 		$this->client = $client;
 		$this->session = $session;
 		$this->redirectUri = env('SPOTIFY_CALLBACK', 'http://localhost:8000/spotify/callback');
+		$this->spotifyService = $spotifyService;
 	}
 
 	/**
@@ -27,130 +29,6 @@ class SpotifyController extends Controller
 	 */
 	function getUser() {
 		return $this->session->get('user');
-	}
-
-	/**
-	 * The main index, checks if there is a user logged in and routes it accordingly
-	 * 
-	 * @return view
-	 */
-	function index() {
-		if (!$this->session->has('access_token')) {
-			return view('login');
-		} else {
-			//\JavaScript::put(['username' => 'Alex Graham']);
-			return view('index')->with('username', $this->getUser()->display_name);
-		}
-	}
-
-	/**
-	 * Attempts to redirect the user to the Spotify authentication page
-	 * @return Redirect
-	 */
-	function login() {
-		// Create a query with our information
-		$query = http_build_query([
-				'client_id' => $this->clientId,
-				'response_type' => 'code',
-				'redirect_uri' => $this->redirectUri,
-				'scope' => 'playlist-read-private user-library-read playlist-modify-private',
-				'show_dialog' => "true"
-		]);
-
-		// Redirect to the spotify login page
-		return redirect('https://accounts.spotify.com/authorize?' . $query);
-	}
-
-	/**
-	 * Logs the user out of the application
-	 * @return Redirect login page
-	 */
-	function logout() {
-		$this->session->forget('access_token');
-		$this->session->forget('refresh_token');
-		$this->session->forget('user');
-		return redirect('/');
-	}
-
-	/**
-	 * Called when the user has OK'd the authentication request. Responsible for 
-	 * then using the access code to request an authentication token and adding the 
-	 * user to the session. Stores the User in the database for later use
-	 * @param  Request  $request 
-	 * @return Redirect to home
-	 */
-	function callback(Request $request) {
-
-		// The code given by the Spotify login page
-		$code = $request->input('code');
-
-		if ($request->error) {
-			return "There was an error";
-		} else {
-
-			// Now we need to get the Auth tokens
-			try {
-				$res = $this->client->request('POST', "https://accounts.spotify.com/api/token", [
-					'form_params' => [
-						'grant_type' => 'authorization_code',
-						'code' => $code,
-						'redirect_uri' => $this->redirectUri,
-						'client_id' => $this->clientId,
-						'client_secret' => $this->clientSecret
-					],
-				]);
-			} catch (\GuzzleHttp\Exception\RequestException $e) {
-				dd($e->getResponse()->getBody(true));
-			}
-
-			// Store the access data
-			$data = json_decode($res->getBody(), true);
-			$this->session->put('access_token', $data['access_token']);
-			$this->session->put('refresh_token', $data['refresh_token']);
-			$this->session->put('token_expires_in', $data['expires_in']);
-
-			// Get and store the user data 
-			$userInfo = $this->doSpotifyGet('https://api.spotify.com/v1/me');
-
-			if($userInfo['display_name'] == null) {
-				$userInfo['display_name'] = $userInfo['id'];
-			}
-
-			// Create the User from the database, or get it
-			$user = \App\SpotifyUser::firstOrCreate(['spotify_id' => $userInfo['id'], 'display_name' => $userInfo['display_name']]);
-
-			// Log the user into our session
-			$this->session->put('user', $user);
-
-			return redirect('/');
-		}
-	}
-
-	/**
-	 * Used to refresh the authentication token given by Spotify
-	 * @return true if authentication worked
-	 */
-	function refresh() {
-
-			// Now we need to get the Auth tokens
-			try {
-
-				// Get a new access token
-				$res = $this->client->request('POST', "https://accounts.spotify.com/api/token", [
-					'form_params' => [
-						'grant_type' => 'refresh_token',
-						'refresh_token' => $this->session->get('refresh_token'),
-						'client_id' => $this->clientId,
-						'client_secret' => $this->clientSecret
-					],
-				]);
-				$responseData = json_decode($res->getBody(), true);
-				$this->session->put('access_token', $responseData['access_token']);
-			} catch (\GuzzleHttp\Exception\RequestException $e) {
-				dd($e->getResponse()->getBody(true));
-			}
-
-			return true;
 	}
 
 	/**
@@ -166,7 +44,7 @@ class SpotifyController extends Controller
 		$tracks = [];
 
 		// Get a track to find the number of tracks we currently have
-		$data = $this->doSpotifyGet('https://api.spotify.com/v1/me/tracks' . '?limit=1');
+		$data = $this->spotifyService->doSpotifyGet('https://api.spotify.com/v1/me/tracks' . '?limit=1');
 		$totalTracks = $data['total'] - 1; // Minus 1 for index
 
 		// Get random track numbers
@@ -192,7 +70,7 @@ class SpotifyController extends Controller
 			$limit = $trackRequest[count($trackRequest) - 1] - $trackRequest[0] + 1;
 
 			// Do the request
-			$data = $this->doSpotifyGet("https://api.spotify.com/v1/me/tracks?offset=$offset&limit=$limit"); //, ['offset' => $offset, 'limit' => $limit]);
+			$data = $this->spotifyService->doSpotifyGet("https://api.spotify.com/v1/me/tracks?offset=$offset&limit=$limit"); //, ['offset' => $offset, 'limit' => $limit]);
 			
 			if ($data == 502) {
 				// If we got a bad gateway, there was a problem, so return that
@@ -332,53 +210,13 @@ class SpotifyController extends Controller
 		}
 	}
 
-	function doSpotifyGet($uri, $query = []) {
-
-		try {
-			$res = $this->client->request('GET', $uri, [
-				'headers' => [
-					'Authorization' => 'Bearer ' . $this->session->get('access_token')
-				]
-			]);
-			
-			if ($res->getStatusCode() != 200) {
-				return $res->getStatusCode();
-			}
-
-			$info = json_decode($res->getBody(), true);
-
-			return $info;
-
-		} catch (\GuzzleHttp\Exception\RequestException $e) {
-			if($e->getResponse()->getStatusCode() == 401) {
-				\Log::error("Receiving a 401");
-
-				// Authorization error
-				if ($this->session->has('access_token')) {
-					\Log::error("Trying to refresh");
-					//$this->refresh();
-					if ($this->refresh()) 
-						$this->doSpotifyGet($uri, $query);
-				} else {
-					return redirect('spotify/login');
-				}
-
-				// Redirect to login
-			} else {
-				echo $e->getResponse()->getStatusCode() . "\n";
-				echo $e->getResponse()->getBody();
-
-			}
-		}
-	}
-
 	/**
 	 * Retreive all tracks (not in use) 
 	 * @return json with tracks as data
 	 */
 	function tracks() {
 
-		$res = $this->doSpotifyGet('https://api.spotify.com/v1/me/tracks');
+		$res = $this->spotifyService->doSpotifyGet('https://api.spotify.com/v1/me/tracks');
 
 		echo $res['total'];
 
@@ -387,7 +225,7 @@ class SpotifyController extends Controller
 		$tracks = [];
 
 		while ($more) {
-			$data = $this->doSpotifyGet($uri);
+			$data = $this->spotifyService->doSpotifyGet($uri);
 
 			foreach ($data['items'] as $item) {
 				$track = $item['track'];
@@ -414,7 +252,7 @@ class SpotifyController extends Controller
 	 * @return [type]           [description]
 	 */
 	function getMeInfo(Request $request) {
-		$data = $this->doSpotifyGet("https://api.spotify.com/v1/me", []);
+		$data = $this->spotifyService->doSpotifyGet("https://api.spotify.com/v1/me", []);
 		return response()->json(['success' => true, 'data' => $data]);
 	}
 }

@@ -21,7 +21,7 @@
 
 	<body class="container" ng-app="trackApp" ng-controller="mainController">
 		<div class="header col-md-10 col-md-offset-1 text-right">
-			<a href="spotify/logout">Logout</a>
+			Logged in as {{ username }} | <a href="spotify/logout">Logout</a>
 		</div>
 
 		<div class="col-md-10 col-md-offset-1">
@@ -52,10 +52,10 @@
 					<th></th>
 				</tr>
 			</thead>
-				<tbody ng-hide="loading">
+				<tbody>
 					<tr ng-repeat="track in tracks track by $index">
 						<td><img ng-src="{{track.album_img}}" width="42" height="42"></td>
-						<td><a href="{{ track.url }}"><strong>{{ track.name }}</strong></a></td>
+						<td><a href="{{ track.url }}"><strong>{{ track.name }}</strong></a> <span class="fa fa-refresh fa-1x fa-spin" ng-show="track.loading"></span></td>
 						<td><a href="{{ track.album_url }}" class="text-muted">{{ track.album_name }}</a></td>
 						<td><a href="{{ track.artist_url }}" class="text-muted">{{ track.artist_name }}</a></td>
 						<td>
@@ -71,7 +71,7 @@
 		
 		<!-- LOADING ICON =============================================== -->
 		<!-- show loading icon if the loading variable is set to true -->
-		<p class="text-center" ng-show="loading"> <span class="fa fa-refresh fa-3x fa-spin"></span><br>Loading from Spotify...</p>
+		<!--<p class="text-center" ng-show="loading"> <span class="fa fa-refresh fa-3x fa-spin"></span><br>Loading from Spotify...</p> -->
 
 		<div class="page-header">
 			<h3>Playlist Creation</h3>
@@ -82,7 +82,7 @@
 			<div class="col-md-6 text-right"> <button class="" ng-click="createPlaylist()">Add Playlist to Spotify</button></div>
 		</div>
 
-		<p class="text-center" ng-show="uploading"> <span class="fa fa-refresh fa-3x fa-spin"></span><br>Loading from Spotify...</p>
+		<p class="text-center" ng-show="uploading"> <span class="fa fa-refresh fa-1x fa-spin"></span><br>Loading from Spotify...</p>
 		
 		<div class="playlist" ng-hide="creating">
 			<table class="table">
@@ -115,7 +115,11 @@
 		</div>
 
 		<p class="text-center" ng-show="creating"> <span class="fa fa-refresh fa-3x fa-spin"></span><br>Creating Playlist...</p>
-		<p class="text-center" ng-show="doneCreating"> Playlist Created!</p>
-
+		<p class="text-center" ng-show="playlistMessage"><strong>Playlist Created!</strong></p>
 	</body> 
+
+	<script>
+	    var username = '<?php echo $username; ?>';
+	</script>
+
 </html>

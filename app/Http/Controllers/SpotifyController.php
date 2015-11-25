@@ -37,7 +37,8 @@ class SpotifyController extends Controller
 		if (!$this->session->has('access_token')) {
 			return view('login');
 		} else {
-			return view('index');
+			//\JavaScript::put(['username' => 'Alex Graham']);
+			return view('index')->with('username', $this->getUser()->display_name);
 		}
 	}
 

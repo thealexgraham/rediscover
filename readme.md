@@ -22,9 +22,13 @@ username: faketestuser password: Test%%%
 ## Code Samples
 
 https://github.com/thealexgraham/rediscover/blob/master/app/Http/Controllers/SpotifyAuthController.php - Handles the Spotify authentication process
+
 https://github.com/thealexgraham/rediscover/blob/master/app/Http/Controllers/SpotifyController.php – Handles incoming requests from the frontend
+
 https://github.com/thealexgraham/rediscover/blob/master/app/SpotifyService.php - Does the actual calls and token refresh
+
 https://github.com/thealexgraham/rediscover/blob/master/resources/views/index.php - The frontend HTML
+
 https://github.com/thealexgraham/rediscover/blob/master/public/js/controllers/mainCtrl.js - The main angular controller
 
 
